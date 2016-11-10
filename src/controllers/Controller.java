@@ -14,6 +14,8 @@ import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Cylinder;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 import repository.Repository;
 import utills.Utills;
@@ -89,18 +91,22 @@ public class Controller implements Initializable{
         Group group = new Group();
 
         Cylinder xAxis = new Cylinder(5, repository.getAxisSize());
+
         xAxis.setRotate(90);
         xAxis.translateXProperty().bind(repository.xAxisScaleProperty().multiply(repository.getAxisSize()).divide(2));
+        xAxis.heightProperty().bind(repository.xAxisScaleProperty().multiply(repository.getAxisSize()));
         PhongMaterial xAxisMat = new PhongMaterial(Color.RED);
         xAxis.setMaterial(xAxisMat);
 
         Cylinder yAxis = new Cylinder(5, repository.getAxisSize());
         yAxis.translateYProperty().bind(repository.yAxisScaleProperty().multiply(repository.getAxisSize()).divide(2));
+        yAxis.heightProperty().bind(repository.yAxisScaleProperty().multiply(repository.getAxisSize()));
         PhongMaterial yAxisMat = new PhongMaterial(Color.BLUE);
         yAxis.setMaterial(yAxisMat);
 
         Cylinder zAxis = new Cylinder(5, repository.getAxisSize());
         zAxis.translateZProperty().bind(repository.zAxisScaleProperty().multiply(repository.getAxisSize()).divide(-2));
+        zAxis.heightProperty().bind(repository.zAxisScaleProperty().multiply(repository.getAxisSize()));
         PhongMaterial zAxisMat = new PhongMaterial(Color.GREEN);
         Rotate zAxisRotate = new Rotate(90, Rotate.X_AXIS);
         zAxis.getTransforms().add(zAxisRotate);
@@ -148,30 +154,45 @@ public class Controller implements Initializable{
 
         //create x-axis lines
         for (int i = 0; i < repository.getAxisSize()*repository.getxAxisScale(); i=i+50) {
-            Line line = new Line(i, 0, i, repository.getAxisSize()*repository.getxAxisScale());
-            Line rotateLine = new Line(i, 0, i, repository.getAxisSize()*repository.getxAxisScale());
+            Line line = new Line(i, 0, i, repository.getAxisSize()*repository.getyAxisScale());
+            Text textX = new Text(String.valueOf((float)i/100));
+            textX.setTranslateX(i);
+            textX.setTranslateY(20);
+            textX.setFont(new Font(20));
+            Line rotateLine = new Line(i, 0, i, repository.getAxisSize()*repository.getzAxisScale());
             Rotate rotate = new Rotate(-90, Rotate.X_AXIS);
             rotateLine.getTransforms().addAll(rotate);
-            xGroup.getChildren().addAll(line, rotateLine);
+            xGroup.getChildren().addAll(line, rotateLine, textX);
         }
         //create y-axis lines
         for (int i = 0; i < repository.getAxisSize()*repository.getyAxisScale(); i=i+50) {
-            Line line = new Line(0, i,repository.getAxisSize()*repository.getyAxisScale(), i);
-            Line rotateLine = new Line(0, i,repository.getAxisSize()*repository.getyAxisScale(), i);
+            Line line = new Line(0, i,repository.getAxisSize()*repository.getxAxisScale(), i);
+            Line rotateLine = new Line(0, i,repository.getAxisSize()*repository.getzAxisScale(), i);
             Rotate rotate = new Rotate(90, Rotate.Y_AXIS);
             rotateLine.getTransforms().addAll(rotate);
-            yGroup.getChildren().addAll(line, rotateLine);
+            Text textY = new Text(String.valueOf((float)i/100));
+            textY.setTranslateY(i);
+            textY.setTranslateX(10);
+            textY.setFont(new Font(20));
+            yGroup.getChildren().addAll(line, rotateLine, textY);
         }
 
         //create z-axis lines
         for (int i = 0; i < repository.getAxisSize()*repository.getzAxisScale(); i=i+50) {
-            Line line = new Line(0, 0,0,repository.getAxisSize()*repository.getzAxisScale());
+            Line line = new Line(0, 0,0,repository.getAxisSize()*repository.getyAxisScale());
             line.setTranslateZ(-i);
-            Line rotateLine = new Line(0, 0,0,repository.getAxisSize()*repository.getzAxisScale());
+            Line rotateLine = new Line(0, 0,0,repository.getAxisSize()*repository.getxAxisScale());
             rotateLine.setTranslateZ(-i);
             Rotate rotate = new Rotate(-90, Rotate.Z_AXIS);
             rotateLine.getTransforms().addAll(rotate);
-            zGroup.getChildren().addAll(line, rotateLine);
+            Text textZ = new Text(String.valueOf((float)i/100));
+            textZ.setTranslateZ(-i);
+            textZ.setTranslateX(10);
+            textZ.setTranslateY(15);
+            Rotate textRotate = new Rotate(-90, Rotate.X_AXIS);
+            textZ.getTransforms().add(textRotate);
+            textZ.setFont(new Font(20));
+            zGroup.getChildren().addAll(line, rotateLine, textZ);
         }
 
         group.getChildren().addAll(xGroup, yGroup, zGroup);

@@ -1,7 +1,9 @@
 package repository;
 
 
+import javafx.beans.property.FloatProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 
 /**
@@ -10,11 +12,11 @@ import javafx.beans.property.SimpleIntegerProperty;
 public class Repository {
     private static Repository instance = new Repository();
     //масштаб 1 пиксель на сантиметр
-    private final int SCALE = 1;
+    private final float SCALE = 1;
     private final int axisSize = 500;
-    private IntegerProperty xAxisScale = new SimpleIntegerProperty(1);
-    private IntegerProperty yAxisScale = new SimpleIntegerProperty(1);
-    private IntegerProperty zAxisScale = new SimpleIntegerProperty(1);
+    private FloatProperty xAxisScale = new SimpleFloatProperty(1.5f);
+    private FloatProperty yAxisScale = new SimpleFloatProperty(1.7f);
+    private FloatProperty zAxisScale = new SimpleFloatProperty(1);
 
 
 
@@ -27,30 +29,30 @@ public class Repository {
         return instance;
     }
 
-    public int getSCALE(){
+    public float getSCALE(){
         return SCALE;
     }
     public int getAxisSize(){
         return axisSize;
     }
 
-    public int getxAxisScale() {
+    public float getxAxisScale() {
         return xAxisScale.get();
     }
 
-    public IntegerProperty xAxisScaleProperty() {
+    public FloatProperty xAxisScaleProperty() {
         return xAxisScale;
     }
 
-    public void setxAxisScale(int xAxisScale) {
+    public void setxAxisScale(float xAxisScale) {
         this.xAxisScale.set(xAxisScale);
     }
 
-    public int getyAxisScale() {
+    public float getyAxisScale() {
         return yAxisScale.get();
     }
 
-    public IntegerProperty yAxisScaleProperty() {
+    public FloatProperty yAxisScaleProperty() {
         return yAxisScale;
     }
 
@@ -58,15 +60,15 @@ public class Repository {
         this.yAxisScale.set(yAxisScale);
     }
 
-    public int getzAxisScale() {
+    public float getzAxisScale() {
         return zAxisScale.get();
     }
 
-    public IntegerProperty zAxisScaleProperty() {
+    public FloatProperty zAxisScaleProperty() {
         return zAxisScale;
     }
 
-    public void setzAxisScale(int zAxisScale) {
+    public void setzAxisScale(float zAxisScale) {
         this.zAxisScale.set(zAxisScale);
     }
 }
