@@ -5,11 +5,18 @@ import javafx.beans.property.FloatProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableArray;
+import javafx.collections.ObservableList;
+import javafx.scene.Group;
+import view.PathDot;
 
 /**
  * Created by Anton on 08.11.2016.
  */
 public class Repository {
+    public Group dotsGroup = new Group();
+
     private static Repository instance = new Repository();
     //масштаб 1 пиксель на сантиметр
     private final float SCALE = 1;

@@ -1,13 +1,16 @@
 package controllers;
 
 import com.sun.prism.shader.DrawCircle_LinearGradient_PAD_AlphaTest_Loader;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Group;
-import javafx.scene.PerspectiveCamera;
-import javafx.scene.SceneAntialiasing;
-import javafx.scene.SubScene;
+import javafx.scene.*;
 import javafx.scene.control.Slider;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
@@ -17,8 +20,10 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
+import model.MyPoint;
 import repository.Repository;
 import utills.Utills;
+import view.PathDot;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -32,7 +37,21 @@ public class Controller implements Initializable{
     Group plainGroup;
     Group cellsGroup;
     Repository repository = Repository.getInstance();
+    PerspectiveCamera camera;
 
+    DoubleProperty cameraRotationX = new SimpleDoubleProperty(0);
+    DoubleProperty cameraRotationY = new SimpleDoubleProperty(0);
+
+    double mousePosX;
+    double mousePosY;
+    double mousePosZ;
+    double mouseOldX;
+    double mouseOldY;
+    double mouseDeltaX;
+    double mouseDeltaY;
+    double CONTROL_MULTIPLIER = 1;
+    double SHIFT_MULTIPLIER = 1;
+    double ROTATION_SPEED = 1;
     @FXML
     Pane subPane;
 
@@ -51,6 +70,9 @@ public class Controller implements Initializable{
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        initPoints();
+
+
         axisGroup = initAxis();
         mainGroup = new Group();
         plainGroup = initPlane();
@@ -68,19 +90,26 @@ public class Controller implements Initializable{
         rotateY.angleProperty().bind(yAxisSlider.valueProperty());
         rotateZ.angleProperty().bind(zAxisSlider.valueProperty());
 
-        PerspectiveCamera camera = new PerspectiveCamera(false);// создание камеры
+        camera = new PerspectiveCamera(false);// создание камеры
         camera.setTranslateX(-100);
         camera.setTranslateY(0);
         camera.setTranslateZ(-600);
+        Rotate cameraRotateX = new Rotate(0, Rotate.X_AXIS);
+        Rotate cameraRotateY = new Rotate(0, Rotate.Y_AXIS);
+        cameraRotateX.angleProperty().bind(cameraRotationX);
+        cameraRotateY.angleProperty().bind(cameraRotationY);
+        camera.getTransforms().addAll(cameraRotateX, cameraRotateY);
+
 
 
 
         mainGroup.getTransforms().addAll(rotateX, rotateY, rotateZ);
 
-        mainGroup.getChildren().addAll(axisGroup, plainGroup, cellsGroup);
+        mainGroup.getChildren().addAll(repository.dotsGroup, axisGroup, plainGroup, cellsGroup);
 
         SubScene subScene = new SubScene(mainGroup, 750, 600, true, SceneAntialiasing.BALANCED);
         subScene.setCamera(camera);
+        handleMouse(subScene);
 
 
         subPane.getChildren().add(subScene);
@@ -119,24 +148,24 @@ public class Controller implements Initializable{
     private Group initPlane(){
         Group group = new Group();
 
-        Rectangle xRect = new Rectangle(100, 100, Color.RED);
-        xRect.setOpacity(0.2);
+        Rectangle xRect = new Rectangle(100, 100, Color.web("rgba(255, 51, 0, 0.2)"));
+        //xRect.setOpacity(0.2);
         xRect.widthProperty().bind(repository.xAxisScaleProperty().multiply(repository.getAxisSize()));
         xRect.heightProperty().bind(repository.yAxisScaleProperty().multiply(repository.getAxisSize()));
 
 
 
-        Rectangle yRect = new Rectangle(100, 100, Color.BLUE);
+        Rectangle yRect = new Rectangle(100, 100, Color.web("rgba(0, 102, 255, 0.3)"));
         Rotate yRotate = new Rotate(90, Rotate.Y_AXIS);
         yRect.getTransforms().add(yRotate);
-        yRect.setOpacity(0.2);
+        //yRect.setOpacity(0.2);
         yRect.widthProperty().bind(repository.zAxisScaleProperty().multiply(repository.getAxisSize()));
         yRect.heightProperty().bind(repository.yAxisScaleProperty().multiply(repository.getAxisSize()));
 
-        Rectangle zRect = new Rectangle(100, 100, Color.GREEN);
+        Rectangle zRect = new Rectangle(100, 100, Color.web("rgba(0, 204, 0, 0.3)"));
         Rotate zRotate = new Rotate(-90, Rotate.X_AXIS);
         zRect.getTransforms().add(zRotate);
-        zRect.setOpacity(0.2);
+        //zRect.setOpacity(0.2);
         zRect.widthProperty().bind(repository.xAxisScaleProperty().multiply(repository.getAxisSize()));
         zRect.heightProperty().bind(repository.zAxisScaleProperty().multiply(repository.getAxisSize()));
 
@@ -197,5 +226,64 @@ public class Controller implements Initializable{
 
         group.getChildren().addAll(xGroup, yGroup, zGroup);
         return group;
+    }
+
+    private void handleMouse(SubScene scene) {
+
+        scene.setOnMousePressed(new EventHandler<MouseEvent>() {
+            @Override public void handle(MouseEvent me) {
+                mousePosX = me.getSceneX();
+                mousePosY = me.getSceneY();
+                mouseOldX = me.getSceneX();
+                mouseOldY = me.getSceneY();
+            }
+        });
+        scene.setOnMouseDragged(new EventHandler<MouseEvent>() {
+            @Override public void handle(MouseEvent me) {
+                mouseOldX = mousePosX;
+                mouseOldY = mousePosY;
+                mousePosX = me.getSceneX();
+                mousePosY = me.getSceneY();
+                mouseDeltaX = (mousePosX - mouseOldX);
+                mouseDeltaY = (mousePosY - mouseOldY);
+
+                double modifier = 1.0;
+
+                if (me.isControlDown()) {
+                    modifier = CONTROL_MULTIPLIER;
+                }
+                if (me.isShiftDown()) {
+                    modifier = SHIFT_MULTIPLIER;
+                }
+                if (me.isPrimaryButtonDown()) {
+                    cameraRotationX.setValue(cameraRotationX.getValue() + mouseDeltaX*ROTATION_SPEED);
+                    cameraRotationY.setValue(cameraRotationY.getValue() - mouseDeltaY*ROTATION_SPEED);
+                    /*cameraXform.ry.setAngle(cameraXform.ry.getAngle() -
+                            mouseDeltaX*modifierFactor*modifier*ROTATION_SPEED);  //
+                    cameraXform.rx.setAngle(cameraXform.rx.getAngle() +
+                            mouseDeltaY*modifierFactor*modifier*ROTATION_SPEED);  // -*/
+                }
+                /*else if (me.isSecondaryButtonDown()) {
+                    double z = camera.getTranslateZ();
+                    double newZ = z + mouseDeltaX*MOUSE_SPEED*modifier;
+                    camera.setTranslateZ(newZ);
+                }
+                else if (me.isMiddleButtonDown()) {
+                    cameraXform2.t.setX(cameraXform2.t.getX() +
+                            mouseDeltaX*MOUSE_SPEED*modifier*TRACK_SPEED);  // -
+                    cameraXform2.t.setY(cameraXform2.t.getY() +
+                            mouseDeltaY*MOUSE_SPEED*modifier*TRACK_SPEED);  // -
+                }*/
+            }
+        }); // setOnMouseDragged
+    } //handleMouse
+
+    public void initPoints(){
+
+        for (int i = 0; i < 100; i++) {
+
+            repository.dotsGroup.getChildren().add(new PathDot(new MyPoint(10*i, 100*Math.sin(i*(2*Math.PI/100))*2, -3*i), true, 5));
+        }
+
     }
 }
