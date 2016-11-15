@@ -20,6 +20,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
+import javafx.scene.transform.Scale;
 import model.MyPoint;
 import repository.Repository;
 import utills.Utills;
@@ -36,11 +37,15 @@ public class Controller implements Initializable{
     Group mainGroup;
     Group plainGroup;
     Group cellsGroup;
+    Group lightGroup;
     Repository repository = Repository.getInstance();
     PerspectiveCamera camera;
 
     DoubleProperty cameraRotationX = new SimpleDoubleProperty(0);
     DoubleProperty cameraRotationY = new SimpleDoubleProperty(0);
+    DoubleProperty zoom = new SimpleDoubleProperty(1);
+    DoubleProperty cameraTranslateX = new SimpleDoubleProperty(-100);
+    DoubleProperty cameraTranslateY = new SimpleDoubleProperty(0);
 
     double mousePosX;
     double mousePosY;
@@ -51,7 +56,9 @@ public class Controller implements Initializable{
     double mouseDeltaY;
     double CONTROL_MULTIPLIER = 1;
     double SHIFT_MULTIPLIER = 1;
-    double ROTATION_SPEED = 1;
+    double ROTATION_SPEED = 0.5;
+    double TRACK_SPEED = 1;
+
     @FXML
     Pane subPane;
 
@@ -77,6 +84,7 @@ public class Controller implements Initializable{
         mainGroup = new Group();
         plainGroup = initPlane();
         cellsGroup = initCells();
+        lightGroup = new Group();
 
         xAxisSlider.setMax(180);
         yAxisSlider.setMax(180);
@@ -85,31 +93,48 @@ public class Controller implements Initializable{
         Rotate rotateX = new Rotate(0, Rotate.X_AXIS);
         Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
         Rotate rotateZ = new Rotate(0, Rotate.Z_AXIS);
+        Scale scale = new Scale(1,1);
 
-        rotateX.angleProperty().bind(xAxisSlider.valueProperty());
+        /*rotateX.angleProperty().bind(xAxisSlider.valueProperty());
         rotateY.angleProperty().bind(yAxisSlider.valueProperty());
-        rotateZ.angleProperty().bind(zAxisSlider.valueProperty());
+        rotateZ.angleProperty().bind(zAxisSlider.valueProperty());*/
+        rotateX.angleProperty().bind(cameraRotationY);
+        rotateY.angleProperty().bind(cameraRotationX);
+        scale.xProperty().bind(zoom);
+        scale.yProperty().bind(zoom);
+        scale.zProperty().bind(zoom);
 
         camera = new PerspectiveCamera(false);// создание камеры
-        camera.setTranslateX(-100);
-        camera.setTranslateY(0);
+        camera.translateXProperty().bind(cameraTranslateX);
+        camera.translateYProperty().bind(cameraTranslateY);
+        //camera.setTranslateX(-100);
+        //camera.setTranslateY(0);
         camera.setTranslateZ(-600);
         Rotate cameraRotateX = new Rotate(0, Rotate.X_AXIS);
         Rotate cameraRotateY = new Rotate(0, Rotate.Y_AXIS);
-        cameraRotateX.angleProperty().bind(cameraRotationX);
+        /*cameraRotateX.angleProperty().bind(cameraRotationX);
         cameraRotateY.angleProperty().bind(cameraRotationY);
-        camera.getTransforms().addAll(cameraRotateX, cameraRotateY);
+        camera.getTransforms().addAll(cameraRotateX, cameraRotateY);*/
+
+        PointLight light = new PointLight();
+        light.setLayoutX(200);
+        light.setLayoutY(200);
+        lightGroup.getChildren().add(light);
 
 
 
+        mainGroup.getTransforms().addAll(rotateX, rotateY, rotateZ, scale);
 
-        mainGroup.getTransforms().addAll(rotateX, rotateY, rotateZ);
 
-        mainGroup.getChildren().addAll(repository.dotsGroup, axisGroup, plainGroup, cellsGroup);
+        mainGroup.getChildren().addAll(lightGroup, repository.dotsGroup, axisGroup, plainGroup, cellsGroup);
 
         SubScene subScene = new SubScene(mainGroup, 750, 600, true, SceneAntialiasing.BALANCED);
         subScene.setCamera(camera);
+
         handleMouse(subScene);
+
+        subScene.widthProperty().bind(subPane.widthProperty());
+        subScene.heightProperty().bind(subPane.heightProperty());
 
 
         subPane.getChildren().add(subScene);
@@ -229,6 +254,14 @@ public class Controller implements Initializable{
     }
 
     private void handleMouse(SubScene scene) {
+        scene.setOnScroll(e -> {
+            if (e.getDeltaY()>0){
+                zoom.setValue(zoom.getValue()+0.1);
+            } else {
+                zoom.setValue(zoom.getValue()-0.1);
+
+            }
+        });
 
         scene.setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override public void handle(MouseEvent me) {
@@ -256,8 +289,8 @@ public class Controller implements Initializable{
                     modifier = SHIFT_MULTIPLIER;
                 }
                 if (me.isPrimaryButtonDown()) {
-                    cameraRotationX.setValue(cameraRotationX.getValue() + mouseDeltaX*ROTATION_SPEED);
-                    cameraRotationY.setValue(cameraRotationY.getValue() - mouseDeltaY*ROTATION_SPEED);
+                    cameraRotationX.setValue(cameraRotationX.getValue() - mouseDeltaX*ROTATION_SPEED);
+                    cameraRotationY.setValue(cameraRotationY.getValue() + mouseDeltaY*ROTATION_SPEED);
                     /*cameraXform.ry.setAngle(cameraXform.ry.getAngle() -
                             mouseDeltaX*modifierFactor*modifier*ROTATION_SPEED);  //
                     cameraXform.rx.setAngle(cameraXform.rx.getAngle() +
@@ -267,13 +300,15 @@ public class Controller implements Initializable{
                     double z = camera.getTranslateZ();
                     double newZ = z + mouseDeltaX*MOUSE_SPEED*modifier;
                     camera.setTranslateZ(newZ);
-                }
+                }*/
                 else if (me.isMiddleButtonDown()) {
-                    cameraXform2.t.setX(cameraXform2.t.getX() +
+                    cameraTranslateX.setValue(cameraTranslateX.getValue()-mouseDeltaX*modifier*TRACK_SPEED);
+                    cameraTranslateY.setValue(cameraTranslateY.getValue()-mouseDeltaY*modifier*TRACK_SPEED);
+                    /*cameraXform2.t.setX(cameraXform2.t.getX() +
                             mouseDeltaX*MOUSE_SPEED*modifier*TRACK_SPEED);  // -
                     cameraXform2.t.setY(cameraXform2.t.getY() +
-                            mouseDeltaY*MOUSE_SPEED*modifier*TRACK_SPEED);  // -
-                }*/
+                            mouseDeltaY*MOUSE_SPEED*modifier*TRACK_SPEED);  // -*/
+                }
             }
         }); // setOnMouseDragged
     } //handleMouse
