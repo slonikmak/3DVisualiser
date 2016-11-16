@@ -5,6 +5,7 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ListChangeListener;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -14,9 +15,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
-import javafx.scene.shape.Cylinder;
-import javafx.scene.shape.Line;
-import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
@@ -79,6 +78,7 @@ public class Controller implements Initializable{
     public void initialize(URL location, ResourceBundle resources) {
         initPoints();
 
+        setProection();
 
         axisGroup = initAxis();
         mainGroup = new Group();
@@ -126,7 +126,7 @@ public class Controller implements Initializable{
         mainGroup.getTransforms().addAll(rotateX, rotateY, rotateZ, scale);
 
 
-        mainGroup.getChildren().addAll(lightGroup, repository.dotsGroup, axisGroup, plainGroup, cellsGroup);
+        mainGroup.getChildren().addAll(lightGroup, repository.dotsGroup, axisGroup, plainGroup, cellsGroup, repository.proectionGroup);
 
         SubScene subScene = new SubScene(mainGroup, 750, 600, true, SceneAntialiasing.BALANCED);
         subScene.setCamera(camera);
@@ -314,11 +314,41 @@ public class Controller implements Initializable{
     } //handleMouse
 
     public void initPoints(){
+        Group xProectionGroup = new Group();
+        Group yProectionGroup = new Group();
+        Group zProectionGroup = new Group();
+
 
         for (int i = 0; i < 100; i++) {
 
             repository.dotsGroup.getChildren().add(new PathDot(new MyPoint(10*i, 100*Math.sin(i*(2*Math.PI/100))*2, -3*i), true, 5));
         }
 
+        repository.dotsGroup.getChildren().addListener((ListChangeListener<Node>) c -> {
+
+        });
+
+        repository.proectionGroup.getChildren().addAll(xProectionGroup, yProectionGroup, zProectionGroup);
+
+    }
+
+    private void setProection(){
+        Group xProectionGroup = new Group();
+        CubicCurve xCubic = new CubicCurve();
+        xCubic.setStartX(0.0f);
+        xCubic.setStartY(0.0f);
+        xCubic.setControlX2(75.0f);
+        xCubic.setControlY2(100.0f);
+        xCubic.setEndX(300.0f);
+        xCubic.setEndY(300.0f);
+        xCubic.setFill(Color.AQUA);
+        xCubic.setTranslateZ(-100);
+        xCubic.setStrokeWidth(20);
+        for (int i = 0; i < repository.proectionGroup.getChildren().size(); i++) {
+
+        }
+
+        xProectionGroup.getChildren().add(xCubic);
+        repository.proectionGroup.getChildren().add(xProectionGroup);
     }
 }

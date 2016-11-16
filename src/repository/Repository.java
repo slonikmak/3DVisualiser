@@ -16,6 +16,7 @@ import view.PathDot;
  */
 public class Repository {
     public Group dotsGroup = new Group();
+    public Group proectionGroup = new Group();
 
     private static Repository instance = new Repository();
     //масштаб 1 пиксель на сантиметр
