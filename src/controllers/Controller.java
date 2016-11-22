@@ -1,15 +1,20 @@
 package controllers;
 
-import com.sun.prism.shader.DrawCircle_LinearGradient_PAD_AlphaTest_Loader;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.*;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
@@ -20,14 +25,18 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Scale;
+import javafx.util.Duration;
+import javafx.util.StringConverter;
 import model.MyPoint;
 import repository.Repository;
 import utills.Utills;
 import view.PathDot;
+import view.Point3D;
+import view.PolyLine3D;
 
-import java.io.IOException;
-import java.io.Serializable;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
@@ -37,6 +46,9 @@ public class Controller implements Initializable{
     Group plainGroup;
     Group cellsGroup;
     Group lightGroup;
+
+    Sphere glider;
+
     Repository repository = Repository.getInstance();
     PerspectiveCamera camera;
 
@@ -45,6 +57,11 @@ public class Controller implements Initializable{
     DoubleProperty zoom = new SimpleDoubleProperty(1);
     DoubleProperty cameraTranslateX = new SimpleDoubleProperty(-100);
     DoubleProperty cameraTranslateY = new SimpleDoubleProperty(0);
+
+    Timeline timeLine;
+
+    long trackLength = 0;
+    long trackStep = 0;
 
     double mousePosX;
     double mousePosY;
@@ -62,23 +79,56 @@ public class Controller implements Initializable{
     Pane subPane;
 
     @FXML
-    private Slider xAxisSlider;
+    CheckBox showProections;
 
     @FXML
-    private Slider yAxisSlider;
+    CheckBox showPath;
 
     @FXML
-    private Slider zAxisSlider;
+    Slider animationSlider;
 
     @FXML
-    private Slider zoomSlider;
+    Label animationLabel;
+
+    @FXML
+    void playTimer() {
+        if ((int)repository.currentPoint.get()==repository.dotsGroup.getChildren().size()-1){
+            repository.currentPoint.set(0);
+        }
+        setTimeLine();
+        timeLine.play();
+    }
+
+    @FXML
+    void pauseTimer(){
+        timeLine.stop();
+    }
+
+    @FXML
+    void stopTimer(){
+        timeLine.stop();
+        repository.currentPoint.setValue(0);
+
+    }
+
+
 
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         initPoints();
 
-        setProection();
+        initSlider();
+
+        initGlider();
+
+
+        repository.proectionGroup.visibleProperty().bind(showProections.selectedProperty());
+        repository.dotsGroup.visibleProperty().bind(showPath.selectedProperty());
+
+        showPath.setSelected(true);
+
+        //setProection();
 
         axisGroup = initAxis();
         mainGroup = new Group();
@@ -86,9 +136,7 @@ public class Controller implements Initializable{
         cellsGroup = initCells();
         lightGroup = new Group();
 
-        xAxisSlider.setMax(180);
-        yAxisSlider.setMax(180);
-        zAxisSlider.setMax(180);
+
 
         Rotate rotateX = new Rotate(0, Rotate.X_AXIS);
         Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
@@ -121,12 +169,10 @@ public class Controller implements Initializable{
         light.setLayoutY(200);
         lightGroup.getChildren().add(light);
 
-
-
         mainGroup.getTransforms().addAll(rotateX, rotateY, rotateZ, scale);
 
 
-        mainGroup.getChildren().addAll(lightGroup, repository.dotsGroup, axisGroup, plainGroup, cellsGroup, repository.proectionGroup);
+        mainGroup.getChildren().addAll(lightGroup, glider, repository.proectionGroup, repository.dotsGroup, axisGroup, plainGroup, cellsGroup);
 
         SubScene subScene = new SubScene(mainGroup, 750, 600, true, SceneAntialiasing.BALANCED);
         subScene.setCamera(camera);
@@ -139,6 +185,41 @@ public class Controller implements Initializable{
 
         subPane.getChildren().add(subScene);
 
+    }
+
+    private void initGlider(){
+        glider = new Sphere(30);
+        setGliderPosition(((PathDot)repository.dotsGroup.getChildren().get(0)).getPoint());
+        repository.currentPoint.addListener((observable, oldValue, newValue) -> {
+            Point3D point = ((PathDot)repository.dotsGroup.getChildren().get((int)repository.currentPoint.longValue())).getPoint();
+            setGliderPosition(point);
+        });
+        glider.setOnMousePressed(event -> {
+            System.out.println(event);
+        });
+    }
+
+    private void initSlider(){
+        animationSlider.setMax(repository.dotsGroup.getChildren().size()-1);
+        animationSlider.setShowTickLabels(true);
+        animationLabel.textProperty().bindBidirectional(animationSlider.valueProperty(), new StringConverter<Number>() {
+            @Override
+            public String toString(Number object) {
+                return String.valueOf((Math.round((Double) object)));
+            }
+
+            @Override
+            public Number fromString(String string) {
+                return null;
+            }
+        });
+        animationSlider.valueProperty().bindBidirectional(repository.currentPoint);
+    }
+
+    private void setGliderPosition(Point3D point){
+        glider.setTranslateX(point.x);
+        glider.setTranslateY(point.y);
+        glider.setTranslateZ(point.z);
     }
 
     private Group initAxis(){
@@ -263,22 +344,24 @@ public class Controller implements Initializable{
             }
         });
 
-        scene.setOnMousePressed(new EventHandler<MouseEvent>() {
-            @Override public void handle(MouseEvent me) {
-                mousePosX = me.getSceneX();
-                mousePosY = me.getSceneY();
-                mouseOldX = me.getSceneX();
-                mouseOldY = me.getSceneY();
-            }
+        scene.setOnMousePressed(me -> {
+            mousePosX = me.getSceneX();
+            mousePosY = me.getSceneY();
+            mouseOldX = me.getSceneX();
+            mouseOldY = me.getSceneY();
         });
-        scene.setOnMouseDragged(new EventHandler<MouseEvent>() {
-            @Override public void handle(MouseEvent me) {
+        scene.setOnMouseDragged(me -> {
+
+
+            if (!me.getTarget().equals(glider)){
+
                 mouseOldX = mousePosX;
                 mouseOldY = mousePosY;
                 mousePosX = me.getSceneX();
                 mousePosY = me.getSceneY();
                 mouseDeltaX = (mousePosX - mouseOldX);
                 mouseDeltaY = (mousePosY - mouseOldY);
+
 
                 double modifier = 1.0;
 
@@ -291,64 +374,101 @@ public class Controller implements Initializable{
                 if (me.isPrimaryButtonDown()) {
                     cameraRotationX.setValue(cameraRotationX.getValue() - mouseDeltaX*ROTATION_SPEED);
                     cameraRotationY.setValue(cameraRotationY.getValue() + mouseDeltaY*ROTATION_SPEED);
-                    /*cameraXform.ry.setAngle(cameraXform.ry.getAngle() -
-                            mouseDeltaX*modifierFactor*modifier*ROTATION_SPEED);  //
-                    cameraXform.rx.setAngle(cameraXform.rx.getAngle() +
-                            mouseDeltaY*modifierFactor*modifier*ROTATION_SPEED);  // -*/
+                /*cameraXform.ry.setAngle(cameraXform.ry.getAngle() -
+                        mouseDeltaX*modifierFactor*modifier*ROTATION_SPEED);  //
+                cameraXform.rx.setAngle(cameraXform.rx.getAngle() +
+                        mouseDeltaY*modifierFactor*modifier*ROTATION_SPEED);  // -*/
                 }
-                /*else if (me.isSecondaryButtonDown()) {
-                    double z = camera.getTranslateZ();
-                    double newZ = z + mouseDeltaX*MOUSE_SPEED*modifier;
-                    camera.setTranslateZ(newZ);
-                }*/
-                else if (me.isMiddleButtonDown()) {
+            /*else if (me.isSecondaryButtonDown()) {
+                double z = camera.getTranslateZ();
+                double newZ = z + mouseDeltaX*MOUSE_SPEED*modifier;
+                camera.setTranslateZ(newZ);
+            }*/
+                else if (me.isSecondaryButtonDown()) {
                     cameraTranslateX.setValue(cameraTranslateX.getValue()-mouseDeltaX*modifier*TRACK_SPEED);
                     cameraTranslateY.setValue(cameraTranslateY.getValue()-mouseDeltaY*modifier*TRACK_SPEED);
-                    /*cameraXform2.t.setX(cameraXform2.t.getX() +
-                            mouseDeltaX*MOUSE_SPEED*modifier*TRACK_SPEED);  // -
-                    cameraXform2.t.setY(cameraXform2.t.getY() +
-                            mouseDeltaY*MOUSE_SPEED*modifier*TRACK_SPEED);  // -*/
+                /*cameraXform2.t.setX(cameraXform2.t.getX() +
+                        mouseDeltaX*MOUSE_SPEED*modifier*TRACK_SPEED);  // -
+                cameraXform2.t.setY(cameraXform2.t.getY() +
+                        mouseDeltaY*MOUSE_SPEED*modifier*TRACK_SPEED);  // -*/
                 }
+            } else {
+
+                mousePosX = me.getSceneX();
+                mousePosY = me.getSceneY();
+                mouseDeltaX = (mousePosX - mouseOldX);
+                mouseDeltaY = (mousePosY - mouseOldY);
+                //double deltaPosX =
+                System.out.println(mouseDeltaX);
+                if (Math.abs(mouseDeltaX*10/zoom.get())>trackStep){
+                    if (mouseDeltaX>0) repository.currentPoint.setValue(repository.currentPoint.get()+1);
+                    else if (mouseDeltaX<0) repository.currentPoint.setValue(repository.currentPoint.get()-1);
+                    mouseOldX = mousePosX;
+                }
+
             }
         }); // setOnMouseDragged
     } //handleMouse
 
     public void initPoints(){
-        Group xProectionGroup = new Group();
-        Group yProectionGroup = new Group();
-        Group zProectionGroup = new Group();
-
 
         for (int i = 0; i < 100; i++) {
+            if (10*i>repository.getxAxisScale()*repository.getAxisSize()) repository.setxAxisScale(repository.getxAxisScale()+0.5f);
 
-            repository.dotsGroup.getChildren().add(new PathDot(new MyPoint(10*i, 100*Math.sin(i*(2*Math.PI/100))*2, -3*i), true, 5));
+            repository.dotsGroup.getChildren().add(new PathDot(new view.Point3D(10*i, (float) (100*Math.sin(i*(2*Math.PI/100))*2)+500,-3*i), true, 5));
         }
 
         repository.dotsGroup.getChildren().addListener((ListChangeListener<Node>) c -> {
 
         });
 
-        repository.proectionGroup.getChildren().addAll(xProectionGroup, yProectionGroup, zProectionGroup);
+        Group proectionGroup = setProection();
+
+        repository.proectionGroup.getChildren().addAll(proectionGroup);
+        setTrackLength();
+
 
     }
 
-    private void setProection(){
-        Group xProectionGroup = new Group();
-        CubicCurve xCubic = new CubicCurve();
-        xCubic.setStartX(0.0f);
-        xCubic.setStartY(0.0f);
-        xCubic.setControlX2(75.0f);
-        xCubic.setControlY2(100.0f);
-        xCubic.setEndX(300.0f);
-        xCubic.setEndY(300.0f);
-        xCubic.setFill(Color.AQUA);
-        xCubic.setTranslateZ(-100);
-        xCubic.setStrokeWidth(20);
-        for (int i = 0; i < repository.proectionGroup.getChildren().size(); i++) {
-
+    private void setTrackLength(){
+        for (int i = 1; i < repository.dotsGroup.getChildren().size()-1; i++) {
+            PathDot dot1 = (PathDot) repository.dotsGroup.getChildren().get(i-1);
+            PathDot dot2 = (PathDot) repository.dotsGroup.getChildren().get(i);
+            trackLength += Math.sqrt((dot2.getPoint().x*dot2.getPoint().x - dot1.getPoint().x*dot1.getPoint().x)+
+                    (dot2.getPoint().y*dot2.getPoint().y - dot1.getPoint().y*dot1.getPoint().y)+
+                    (dot2.getPoint().z*dot2.getPoint().z - dot1.getPoint().z*dot1.getPoint().z));
         }
+        trackStep = trackLength/repository.dotsGroup.getChildren().size();
+        System.out.println("length "+trackLength);
+    }
 
-        xProectionGroup.getChildren().add(xCubic);
-        repository.proectionGroup.getChildren().add(xProectionGroup);
+    private Group setProection(){
+        Group group = new Group();
+        List<Point3D> listX = new ArrayList<>();
+        List<Point3D> listY = new ArrayList<>();
+        List<Point3D> listZ = new ArrayList<>();
+
+        for (int i = 0; i < repository.dotsGroup.getChildren().size(); i++) {
+            Point3D point = ((PathDot)repository.dotsGroup.getChildren().get(i)).getPoint();
+            Point3D pointX = new Point3D(point.x, point.y, 0);
+            Point3D pointY = new Point3D(0, point.y, point.z);
+            Point3D pointZ = new Point3D(point.x, 0, point.z);
+            listX.add(pointX);
+            listY.add(pointY);
+            listZ.add(pointZ);
+        }
+        PolyLine3D lineX = new PolyLine3D(listX, 5, Color.RED, PolyLine3D.LineType.TRIANGLE);
+        PolyLine3D lineY = new PolyLine3D(listY, 5, Color.BLUE, PolyLine3D.LineType.RIBBON);
+        PolyLine3D lineZ = new PolyLine3D(listZ, 5, Color.GREEN, PolyLine3D.LineType.RIBBON);
+        group.getChildren().addAll(lineX, lineY, lineZ);
+        return group;
+    }
+
+    public void setTimeLine(){
+        timeLine = new Timeline(new KeyFrame(Duration.millis(100), ae->{
+            repository.currentPoint.set(repository.currentPoint.get()+1);
+            System.out.println(repository.currentPoint.get());
+        }));
+        timeLine.setCycleCount((int) (repository.dotsGroup.getChildren().size()-1-repository.currentPoint.get()));
     }
 }

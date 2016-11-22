@@ -4,15 +4,13 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
-import javafx.scene.shape.Shape;
 import javafx.scene.shape.Sphere;
-import model.MyPoint;
 
 /**
  * Created by Oceanos on 14.11.2016.
  */
 public class PathDot extends Sphere{
-    MyPoint point;
+    Point3D point;
     BooleanProperty showing = new SimpleBooleanProperty(false);
     PhongMaterial material;
 
@@ -21,23 +19,23 @@ public class PathDot extends Sphere{
         super();
     }
 
-    public PathDot(MyPoint point, boolean showing, double radius) {
+    public PathDot(Point3D point, boolean showing, double radius) {
         super(radius);
         this.point = point;
         this.showing.setValue(showing);
-        setTranslateY(point.getY());
-        setTranslateZ(point.getZ());
-        setTranslateX(point.getX());
+        setTranslateY(point.y);
+        setTranslateZ(point.z);
+        setTranslateX(point.x);
         setVisible(showing);
         material = new PhongMaterial(Color.web("rgba(0, 102, 255, 0.3)"));
         setMaterial(material);
     }
 
-    public MyPoint getPoint() {
+    public Point3D getPoint() {
         return point;
     }
 
-    public void setPoint(MyPoint point) {
+    public void setPoint(Point3D point) {
         this.point = point;
     }
 

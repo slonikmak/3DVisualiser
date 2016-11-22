@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ButtonBar?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Slider?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -8,13 +11,16 @@
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="800.0" minWidth="1000.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.Controller">
    <children>
       <Pane fx:id="subPane" layoutX="102.0" layoutY="134.0" style="-fx-border-color: black;" AnchorPane.bottomAnchor="200.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0" />
-      <Slider layoutX="10.0" layoutY="612.0" AnchorPane.bottomAnchor="174.0" AnchorPane.leftAnchor="10.0" fx:id="xAxisSlider" />
-      <Slider fx:id="yAxisSlider" layoutX="10.0" layoutY="634.0" AnchorPane.bottomAnchor="150.0" AnchorPane.leftAnchor="10.0" />
-      <Slider fx:id="zAxisSlider" layoutX="10.0" layoutY="655.0" AnchorPane.bottomAnchor="130.0" AnchorPane.leftAnchor="10.0" />
-      <Slider fx:id="zoomSlider" layoutX="10.0" layoutY="676.0" AnchorPane.bottomAnchor="110.0" AnchorPane.leftAnchor="10.0" />
-      <Label layoutX="161.0" layoutY="611.0" text="X axis" AnchorPane.bottomAnchor="174.0" AnchorPane.leftAnchor="161.0" />
-      <Label layoutX="161.0" layoutY="633.0" text="Y axis" AnchorPane.bottomAnchor="150.0" AnchorPane.leftAnchor="161.0" />
-      <Label layoutX="161.0" layoutY="654.0" text="Z axis" AnchorPane.bottomAnchor="130.0" AnchorPane.leftAnchor="161.0" />
-      <Label layoutX="161.0" layoutY="675.0" text="zoom" AnchorPane.bottomAnchor="110.0" AnchorPane.leftAnchor="161.0" />
+      <CheckBox fx:id="showProections" layoutX="14.0" layoutY="610.0" mnemonicParsing="false" text="показать проекции" AnchorPane.bottomAnchor="173.0" AnchorPane.leftAnchor="14.0" />
+      <CheckBox fx:id="showPath" layoutX="14.0" layoutY="636.0" mnemonicParsing="false" text="показать путь" AnchorPane.bottomAnchor="147.0" AnchorPane.leftAnchor="14.0" />
+      <ButtonBar layoutX="162.0" layoutY="599.0" prefHeight="40.0" prefWidth="200.0" AnchorPane.bottomAnchor="161.0" AnchorPane.leftAnchor="162.0">
+        <buttons>
+          <Button mnemonicParsing="false" onAction="#playTimer" text="Play" />
+            <Button mnemonicParsing="false" onAction="#pauseTimer" text="Pause" />
+            <Button mnemonicParsing="false" onAction="#stopTimer" text="Stop" />
+        </buttons>
+      </ButtonBar>
+      <Slider fx:id="animationSlider" layoutX="178.0" layoutY="653.0" prefHeight="14.0" prefWidth="250.0" showTickLabels="true" AnchorPane.bottomAnchor="114.0" AnchorPane.leftAnchor="178.0" />
+      <Label fx:id="animationLabel" layoutX="463.0" layoutY="653.0" text="0" AnchorPane.bottomAnchor="130.0" AnchorPane.leftAnchor="463.0" />
    </children>
 </AnchorPane>

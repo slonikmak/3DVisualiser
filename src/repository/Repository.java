@@ -1,10 +1,7 @@
 package repository;
 
 
-import javafx.beans.property.FloatProperty;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleFloatProperty;
-import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableArray;
 import javafx.collections.ObservableList;
@@ -17,6 +14,7 @@ import view.PathDot;
 public class Repository {
     public Group dotsGroup = new Group();
     public Group proectionGroup = new Group();
+    public LongProperty currentPoint = new SimpleLongProperty(0);
 
     private static Repository instance = new Repository();
     //масштаб 1 пиксель на сантиметр
