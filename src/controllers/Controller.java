@@ -1,22 +1,18 @@
 package controllers;
 
+import com.interactivemesh.jfx.importer.Importer;
+import com.interactivemesh.jfx.importer.stl.StlMeshImporter;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.*;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
@@ -25,55 +21,57 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Scale;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
-import model.MyPoint;
 import repository.Repository;
-import utills.Utills;
 import view.PathDot;
 import view.Point3D;
 import view.PolyLine3D;
 
+import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.ResourceBundle;
 
 public class Controller implements Initializable{
-    Group axisGroup;
-    Group mainGroup;
-    Group plainGroup;
-    Group cellsGroup;
-    Group lightGroup;
+    private Stage stage;
 
-    Sphere glider;
+    private Group axisGroup;
+    private Group mainGroup;
+    private Group plainGroup;
+    private Group cellsGroup;
+    private Group lightGroup;
 
-    Repository repository = Repository.getInstance();
-    PerspectiveCamera camera;
+    private Sphere glider;
 
-    DoubleProperty cameraRotationX = new SimpleDoubleProperty(0);
-    DoubleProperty cameraRotationY = new SimpleDoubleProperty(0);
-    DoubleProperty zoom = new SimpleDoubleProperty(1);
-    DoubleProperty cameraTranslateX = new SimpleDoubleProperty(-100);
-    DoubleProperty cameraTranslateY = new SimpleDoubleProperty(0);
+    private Repository repository = Repository.getInstance();
+    private PerspectiveCamera camera;
 
-    Timeline timeLine;
+    private DoubleProperty cameraRotationX = new SimpleDoubleProperty(0);
+    private DoubleProperty cameraRotationY = new SimpleDoubleProperty(0);
+    private DoubleProperty zoom = new SimpleDoubleProperty(1);
+    private DoubleProperty cameraTranslateX = new SimpleDoubleProperty(-100);
+    private DoubleProperty cameraTranslateY = new SimpleDoubleProperty(0);
 
-    long trackLength = 0;
-    long trackStep = 0;
+    private Timeline timeLine;
 
-    double mousePosX;
-    double mousePosY;
-    double mousePosZ;
-    double mouseOldX;
-    double mouseOldY;
-    double mouseDeltaX;
-    double mouseDeltaY;
-    double CONTROL_MULTIPLIER = 1;
-    double SHIFT_MULTIPLIER = 1;
-    double ROTATION_SPEED = 0.5;
-    double TRACK_SPEED = 1;
+    private long trackLength = 0;
+    private long trackStep = 0;
+
+    private double mousePosX;
+    private double mousePosY;
+    //private double mousePosZ;
+    private double mouseOldX;
+    private double mouseOldY;
+    private double mouseDeltaX;
+    private double mouseDeltaY;
+    private double CONTROL_MULTIPLIER = 1;
+    private double SHIFT_MULTIPLIER = 1;
+    private double ROTATION_SPEED = 0.5;
+    private double TRACK_SPEED = 1;
 
     @FXML
     Pane subPane;
@@ -89,6 +87,7 @@ public class Controller implements Initializable{
 
     @FXML
     Label animationLabel;
+
 
     @FXML
     void playTimer() {
@@ -108,6 +107,19 @@ public class Controller implements Initializable{
     void stopTimer(){
         timeLine.stop();
         repository.currentPoint.setValue(0);
+
+    }
+
+    @FXML
+    void loadModel(){
+        FileChooser fileChooser = new FileChooser();
+        File file = fileChooser.showOpenDialog(stage);
+        System.out.println(file);
+        Importer importer = new StlMeshImporter();
+        importer.read(file);
+        TriangleMesh node = (TriangleMesh) importer.getImport();
+        MeshView meshView = new MeshView(node);
+        mainGroup.getChildren().add(meshView);
 
     }
 
@@ -158,8 +170,8 @@ public class Controller implements Initializable{
         //camera.setTranslateX(-100);
         //camera.setTranslateY(0);
         camera.setTranslateZ(-600);
-        Rotate cameraRotateX = new Rotate(0, Rotate.X_AXIS);
-        Rotate cameraRotateY = new Rotate(0, Rotate.Y_AXIS);
+        //Rotate cameraRotateX = new Rotate(0, Rotate.X_AXIS);
+        //Rotate cameraRotateY = new Rotate(0, Rotate.Y_AXIS);
         /*cameraRotateX.angleProperty().bind(cameraRotationX);
         cameraRotateY.angleProperty().bind(cameraRotationY);
         camera.getTransforms().addAll(cameraRotateX, cameraRotateY);*/
@@ -194,9 +206,7 @@ public class Controller implements Initializable{
             Point3D point = ((PathDot)repository.dotsGroup.getChildren().get((int)repository.currentPoint.longValue())).getPoint();
             setGliderPosition(point);
         });
-        glider.setOnMousePressed(event -> {
-            System.out.println(event);
-        });
+
     }
 
     private void initSlider(){
@@ -281,7 +291,7 @@ public class Controller implements Initializable{
 
     }
 
-    public Group initCells(){
+    private Group initCells(){
         Group group = new Group();
         Group xGroup = new Group();
         Group yGroup = new Group();
@@ -410,7 +420,7 @@ public class Controller implements Initializable{
         }); // setOnMouseDragged
     } //handleMouse
 
-    public void initPoints(){
+    private void initPoints(){
 
         for (int i = 0; i < 100; i++) {
             if (10*i>repository.getxAxisScale()*repository.getAxisSize()) repository.setxAxisScale(repository.getxAxisScale()+0.5f);
@@ -422,9 +432,9 @@ public class Controller implements Initializable{
 
         });
 
-        Group proectionGroup = setProection();
+        Group projectionGroup = setProection();
 
-        repository.proectionGroup.getChildren().addAll(proectionGroup);
+        repository.proectionGroup.getChildren().addAll(projectionGroup);
         setTrackLength();
 
 
@@ -464,11 +474,15 @@ public class Controller implements Initializable{
         return group;
     }
 
-    public void setTimeLine(){
+    private void setTimeLine(){
         timeLine = new Timeline(new KeyFrame(Duration.millis(100), ae->{
             repository.currentPoint.set(repository.currentPoint.get()+1);
             System.out.println(repository.currentPoint.get());
         }));
         timeLine.setCycleCount((int) (repository.dotsGroup.getChildren().size()-1-repository.currentPoint.get()));
+    }
+
+    public void setStage(Stage stage){
+        this.stage = stage;
     }
 }

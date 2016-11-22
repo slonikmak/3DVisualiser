@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.Pane?>
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="800.0" minWidth="1000.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.Controller">
-   <children>
+
       <Pane fx:id="subPane" layoutX="102.0" layoutY="134.0" style="-fx-border-color: black;" AnchorPane.bottomAnchor="200.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0" />
       <CheckBox fx:id="showProections" layoutX="14.0" layoutY="610.0" mnemonicParsing="false" text="показать проекции" AnchorPane.bottomAnchor="173.0" AnchorPane.leftAnchor="14.0" />
       <CheckBox fx:id="showPath" layoutX="14.0" layoutY="636.0" mnemonicParsing="false" text="показать путь" AnchorPane.bottomAnchor="147.0" AnchorPane.leftAnchor="14.0" />
@@ -22,5 +22,10 @@
       </ButtonBar>
       <Slider fx:id="animationSlider" layoutX="178.0" layoutY="653.0" prefHeight="14.0" prefWidth="250.0" showTickLabels="true" AnchorPane.bottomAnchor="114.0" AnchorPane.leftAnchor="178.0" />
       <Label fx:id="animationLabel" layoutX="463.0" layoutY="653.0" text="0" AnchorPane.bottomAnchor="130.0" AnchorPane.leftAnchor="463.0" />
-   </children>
+      <ButtonBar layoutX="786.0" layoutY="607.0" prefHeight="40.0" prefWidth="200.0" AnchorPane.bottomAnchor="153.0" AnchorPane.rightAnchor="14.0">
+        <buttons>
+          <Button mnemonicParsing="false" onAction="#loadModel" text="Load Model" />
+        </buttons>
+      </ButtonBar>
+
 </AnchorPane>
