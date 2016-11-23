@@ -27,5 +27,6 @@
           <Button mnemonicParsing="false" onAction="#loadModel" text="Load Model" />
         </buttons>
       </ButtonBar>
+   <CheckBox fx:id="dynamicPath" layoutX="14.0" layoutY="662.0" mnemonicParsing="false" selected="true" text="динамический путь" AnchorPane.bottomAnchor="121.0" AnchorPane.leftAnchor="14.0" />
 
 </AnchorPane>

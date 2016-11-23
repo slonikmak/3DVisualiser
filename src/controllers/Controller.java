@@ -6,6 +6,8 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -25,6 +27,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
+import model.MyPoint;
 import repository.Repository;
 import view.PathDot;
 import view.Point3D;
@@ -36,7 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
-public class Controller implements Initializable{
+public class Controller implements Initializable {
     private Stage stage;
 
     private Group axisGroup;
@@ -88,10 +91,13 @@ public class Controller implements Initializable{
     @FXML
     Label animationLabel;
 
+    @FXML
+    CheckBox dynamicPath;
+
 
     @FXML
     void playTimer() {
-        if ((int)repository.currentPoint.get()==repository.dotsGroup.getChildren().size()-1){
+        if ((int) repository.currentPoint.get() == repository.dotsGroup.getChildren().size() - 1) {
             repository.currentPoint.set(0);
         }
         setTimeLine();
@@ -99,19 +105,19 @@ public class Controller implements Initializable{
     }
 
     @FXML
-    void pauseTimer(){
+    void pauseTimer() {
         timeLine.stop();
     }
 
     @FXML
-    void stopTimer(){
+    void stopTimer() {
         timeLine.stop();
         repository.currentPoint.setValue(0);
 
     }
 
     @FXML
-    void loadModel(){
+    void loadModel() {
         FileChooser fileChooser = new FileChooser();
         File file = fileChooser.showOpenDialog(stage);
         System.out.println(file);
@@ -122,8 +128,6 @@ public class Controller implements Initializable{
         mainGroup.getChildren().add(meshView);
 
     }
-
-
 
 
     @Override
@@ -149,11 +153,10 @@ public class Controller implements Initializable{
         lightGroup = new Group();
 
 
-
         Rotate rotateX = new Rotate(0, Rotate.X_AXIS);
         Rotate rotateY = new Rotate(0, Rotate.Y_AXIS);
         Rotate rotateZ = new Rotate(0, Rotate.Z_AXIS);
-        Scale scale = new Scale(1,1);
+        Scale scale = new Scale(1, 1);
 
         /*rotateX.angleProperty().bind(xAxisSlider.valueProperty());
         rotateY.angleProperty().bind(yAxisSlider.valueProperty());
@@ -199,18 +202,18 @@ public class Controller implements Initializable{
 
     }
 
-    private void initGlider(){
+    private void initGlider() {
         glider = new Sphere(30);
-        setGliderPosition(((PathDot)repository.dotsGroup.getChildren().get(0)).getPoint());
+        setGliderPosition(((PathDot) repository.dotsGroup.getChildren().get(0)).getPoint());
         repository.currentPoint.addListener((observable, oldValue, newValue) -> {
-            Point3D point = ((PathDot)repository.dotsGroup.getChildren().get((int)repository.currentPoint.longValue())).getPoint();
+            Point3D point = ((PathDot) repository.dotsGroup.getChildren().get(repository.currentPoint.intValue())).getPoint();
             setGliderPosition(point);
         });
 
     }
 
-    private void initSlider(){
-        animationSlider.setMax(repository.dotsGroup.getChildren().size()-1);
+    private void initSlider() {
+        animationSlider.setMax(repository.dotsGroup.getChildren().size() - 1);
         animationSlider.setShowTickLabels(true);
         animationLabel.textProperty().bindBidirectional(animationSlider.valueProperty(), new StringConverter<Number>() {
             @Override
@@ -226,13 +229,13 @@ public class Controller implements Initializable{
         animationSlider.valueProperty().bindBidirectional(repository.currentPoint);
     }
 
-    private void setGliderPosition(Point3D point){
+    private void setGliderPosition(Point3D point) {
         glider.setTranslateX(point.x);
         glider.setTranslateY(point.y);
         glider.setTranslateZ(point.z);
     }
 
-    private Group initAxis(){
+    private Group initAxis() {
         Group group = new Group();
 
         Cylinder xAxis = new Cylinder(5, repository.getAxisSize());
@@ -261,14 +264,13 @@ public class Controller implements Initializable{
         return group;
     }
 
-    private Group initPlane(){
+    private Group initPlane() {
         Group group = new Group();
 
         Rectangle xRect = new Rectangle(100, 100, Color.web("rgba(255, 51, 0, 0.2)"));
         //xRect.setOpacity(0.2);
         xRect.widthProperty().bind(repository.xAxisScaleProperty().multiply(repository.getAxisSize()));
         xRect.heightProperty().bind(repository.yAxisScaleProperty().multiply(repository.getAxisSize()));
-
 
 
         Rectangle yRect = new Rectangle(100, 100, Color.web("rgba(0, 102, 255, 0.3)"));
@@ -291,31 +293,31 @@ public class Controller implements Initializable{
 
     }
 
-    private Group initCells(){
+    private Group initCells() {
         Group group = new Group();
         Group xGroup = new Group();
         Group yGroup = new Group();
         Group zGroup = new Group();
 
         //create x-axis lines
-        for (int i = 0; i < repository.getAxisSize()*repository.getxAxisScale(); i=i+50) {
-            Line line = new Line(i, 0, i, repository.getAxisSize()*repository.getyAxisScale());
-            Text textX = new Text(String.valueOf((float)i/100));
+        for (int i = 0; i < repository.getAxisSize() * repository.getxAxisScale(); i = i + 50) {
+            Line line = new Line(i, 0, i, repository.getAxisSize() * repository.getyAxisScale());
+            Text textX = new Text(String.valueOf((float) i / 100));
             textX.setTranslateX(i);
             textX.setTranslateY(20);
             textX.setFont(new Font(20));
-            Line rotateLine = new Line(i, 0, i, repository.getAxisSize()*repository.getzAxisScale());
+            Line rotateLine = new Line(i, 0, i, repository.getAxisSize() * repository.getzAxisScale());
             Rotate rotate = new Rotate(-90, Rotate.X_AXIS);
             rotateLine.getTransforms().addAll(rotate);
             xGroup.getChildren().addAll(line, rotateLine, textX);
         }
         //create y-axis lines
-        for (int i = 0; i < repository.getAxisSize()*repository.getyAxisScale(); i=i+50) {
-            Line line = new Line(0, i,repository.getAxisSize()*repository.getxAxisScale(), i);
-            Line rotateLine = new Line(0, i,repository.getAxisSize()*repository.getzAxisScale(), i);
+        for (int i = 0; i < repository.getAxisSize() * repository.getyAxisScale(); i = i + 50) {
+            Line line = new Line(0, i, repository.getAxisSize() * repository.getxAxisScale(), i);
+            Line rotateLine = new Line(0, i, repository.getAxisSize() * repository.getzAxisScale(), i);
             Rotate rotate = new Rotate(90, Rotate.Y_AXIS);
             rotateLine.getTransforms().addAll(rotate);
-            Text textY = new Text(String.valueOf((float)i/100));
+            Text textY = new Text(String.valueOf((float) i / 100));
             textY.setTranslateY(i);
             textY.setTranslateX(10);
             textY.setFont(new Font(20));
@@ -323,14 +325,14 @@ public class Controller implements Initializable{
         }
 
         //create z-axis lines
-        for (int i = 0; i < repository.getAxisSize()*repository.getzAxisScale(); i=i+50) {
-            Line line = new Line(0, 0,0,repository.getAxisSize()*repository.getyAxisScale());
+        for (int i = 0; i < repository.getAxisSize() * repository.getzAxisScale(); i = i + 50) {
+            Line line = new Line(0, 0, 0, repository.getAxisSize() * repository.getyAxisScale());
             line.setTranslateZ(-i);
-            Line rotateLine = new Line(0, 0,0,repository.getAxisSize()*repository.getxAxisScale());
+            Line rotateLine = new Line(0, 0, 0, repository.getAxisSize() * repository.getxAxisScale());
             rotateLine.setTranslateZ(-i);
             Rotate rotate = new Rotate(-90, Rotate.Z_AXIS);
             rotateLine.getTransforms().addAll(rotate);
-            Text textZ = new Text(String.valueOf((float)i/100));
+            Text textZ = new Text(String.valueOf((float) i / 100));
             textZ.setTranslateZ(-i);
             textZ.setTranslateX(10);
             textZ.setTranslateY(15);
@@ -346,10 +348,10 @@ public class Controller implements Initializable{
 
     private void handleMouse(SubScene scene) {
         scene.setOnScroll(e -> {
-            if (e.getDeltaY()>0){
-                zoom.setValue(zoom.getValue()+0.1);
+            if (e.getDeltaY() > 0) {
+                zoom.setValue(zoom.getValue() + 0.1);
             } else {
-                zoom.setValue(zoom.getValue()-0.1);
+                zoom.setValue(zoom.getValue() - 0.1);
 
             }
         });
@@ -363,7 +365,7 @@ public class Controller implements Initializable{
         scene.setOnMouseDragged(me -> {
 
 
-            if (!me.getTarget().equals(glider)){
+            if (!me.getTarget().equals(glider)) {
 
                 mouseOldX = mousePosX;
                 mouseOldY = mousePosY;
@@ -382,8 +384,8 @@ public class Controller implements Initializable{
                     modifier = SHIFT_MULTIPLIER;
                 }
                 if (me.isPrimaryButtonDown()) {
-                    cameraRotationX.setValue(cameraRotationX.getValue() - mouseDeltaX*ROTATION_SPEED);
-                    cameraRotationY.setValue(cameraRotationY.getValue() + mouseDeltaY*ROTATION_SPEED);
+                    cameraRotationX.setValue(cameraRotationX.getValue() - mouseDeltaX * ROTATION_SPEED);
+                    cameraRotationY.setValue(cameraRotationY.getValue() + mouseDeltaY * ROTATION_SPEED);
                 /*cameraXform.ry.setAngle(cameraXform.ry.getAngle() -
                         mouseDeltaX*modifierFactor*modifier*ROTATION_SPEED);  //
                 cameraXform.rx.setAngle(cameraXform.rx.getAngle() +
@@ -395,8 +397,8 @@ public class Controller implements Initializable{
                 camera.setTranslateZ(newZ);
             }*/
                 else if (me.isSecondaryButtonDown()) {
-                    cameraTranslateX.setValue(cameraTranslateX.getValue()-mouseDeltaX*modifier*TRACK_SPEED);
-                    cameraTranslateY.setValue(cameraTranslateY.getValue()-mouseDeltaY*modifier*TRACK_SPEED);
+                    cameraTranslateX.setValue(cameraTranslateX.getValue() - mouseDeltaX * modifier * TRACK_SPEED);
+                    cameraTranslateY.setValue(cameraTranslateY.getValue() - mouseDeltaY * modifier * TRACK_SPEED);
                 /*cameraXform2.t.setX(cameraXform2.t.getX() +
                         mouseDeltaX*MOUSE_SPEED*modifier*TRACK_SPEED);  // -
                 cameraXform2.t.setY(cameraXform2.t.getY() +
@@ -409,10 +411,10 @@ public class Controller implements Initializable{
                 mouseDeltaX = (mousePosX - mouseOldX);
                 mouseDeltaY = (mousePosY - mouseOldY);
                 //double deltaPosX =
-                System.out.println(mouseDeltaX);
-                if (Math.abs(mouseDeltaX*10/zoom.get())>trackStep){
-                    if (mouseDeltaX>0) repository.currentPoint.setValue(repository.currentPoint.get()+1);
-                    else if (mouseDeltaX<0) repository.currentPoint.setValue(repository.currentPoint.get()-1);
+                //System.out.println(mouseDeltaX);
+                if (Math.abs(mouseDeltaX * 10 / zoom.get()) > trackStep) {
+                    if (mouseDeltaX > 0) repository.currentPoint.setValue(repository.currentPoint.get() + 1);
+                    else if (mouseDeltaX < 0) repository.currentPoint.setValue(repository.currentPoint.get() - 1);
                     mouseOldX = mousePosX;
                 }
 
@@ -420,12 +422,16 @@ public class Controller implements Initializable{
         }); // setOnMouseDragged
     } //handleMouse
 
-    private void initPoints(){
+    private void initPoints() {
 
         for (int i = 0; i < 100; i++) {
-            if (10*i>repository.getxAxisScale()*repository.getAxisSize()) repository.setxAxisScale(repository.getxAxisScale()+0.5f);
+            if (10 * i > repository.getxAxisScale() * repository.getAxisSize())
+                repository.setxAxisScale(repository.getxAxisScale() + 0.5f);
 
-            repository.dotsGroup.getChildren().add(new PathDot(new view.Point3D(10*i, (float) (100*Math.sin(i*(2*Math.PI/100))*2)+500,-3*i), true, 5));
+            PathDot dot = new PathDot(new view.Point3D(10 * i, (float) (100 * Math.sin(i * (2 * Math.PI / 100)) * 2) + 500, -3 * i), true, 5);
+            if (dynamicPath.isSelected()) dot.setVisible(false);
+
+            repository.dotsGroup.getChildren().add(dot);
         }
 
         repository.dotsGroup.getChildren().addListener((ListChangeListener<Node>) c -> {
@@ -437,29 +443,49 @@ public class Controller implements Initializable{
         repository.proectionGroup.getChildren().addAll(projectionGroup);
         setTrackLength();
 
+        repository.currentPoint.addListener((observable, oldValue, newValue) -> {
+            int diff = newValue.intValue() - oldValue.intValue();
+            int dir;
+            dir = (diff > 0) ? 1 :-1;
+            if (Math.abs(diff) > 1) {
+                System.out.println(diff);
+                for (int i = 0; i < Math.abs(diff); i++) {
+                    int val = oldValue.intValue() + dir + i*dir;
+                    Node point = repository.dotsGroup.getChildren().get(val);
+                    if (point.isVisible()) point.setVisible(false);
+                    else point.setVisible(true);
+                }
+            } else {
+                Node point = repository.dotsGroup.getChildren().get(newValue.intValue());
+                if (point.isVisible()) point.setVisible(false);
+                else point.setVisible(true);
+            }
+
+        });
+
 
     }
 
-    private void setTrackLength(){
-        for (int i = 1; i < repository.dotsGroup.getChildren().size()-1; i++) {
-            PathDot dot1 = (PathDot) repository.dotsGroup.getChildren().get(i-1);
+    private void setTrackLength() {
+        for (int i = 1; i < repository.dotsGroup.getChildren().size() - 1; i++) {
+            PathDot dot1 = (PathDot) repository.dotsGroup.getChildren().get(i - 1);
             PathDot dot2 = (PathDot) repository.dotsGroup.getChildren().get(i);
-            trackLength += Math.sqrt((dot2.getPoint().x*dot2.getPoint().x - dot1.getPoint().x*dot1.getPoint().x)+
-                    (dot2.getPoint().y*dot2.getPoint().y - dot1.getPoint().y*dot1.getPoint().y)+
-                    (dot2.getPoint().z*dot2.getPoint().z - dot1.getPoint().z*dot1.getPoint().z));
+            trackLength += Math.sqrt((dot2.getPoint().x * dot2.getPoint().x - dot1.getPoint().x * dot1.getPoint().x) +
+                    (dot2.getPoint().y * dot2.getPoint().y - dot1.getPoint().y * dot1.getPoint().y) +
+                    (dot2.getPoint().z * dot2.getPoint().z - dot1.getPoint().z * dot1.getPoint().z));
         }
-        trackStep = trackLength/repository.dotsGroup.getChildren().size();
-        System.out.println("length "+trackLength);
+        trackStep = trackLength / repository.dotsGroup.getChildren().size();
+        //System.out.println("length " + trackLength);
     }
 
-    private Group setProection(){
+    private Group setProection() {
         Group group = new Group();
         List<Point3D> listX = new ArrayList<>();
         List<Point3D> listY = new ArrayList<>();
         List<Point3D> listZ = new ArrayList<>();
 
         for (int i = 0; i < repository.dotsGroup.getChildren().size(); i++) {
-            Point3D point = ((PathDot)repository.dotsGroup.getChildren().get(i)).getPoint();
+            Point3D point = ((PathDot) repository.dotsGroup.getChildren().get(i)).getPoint();
             Point3D pointX = new Point3D(point.x, point.y, 0);
             Point3D pointY = new Point3D(0, point.y, point.z);
             Point3D pointZ = new Point3D(point.x, 0, point.z);
@@ -474,15 +500,15 @@ public class Controller implements Initializable{
         return group;
     }
 
-    private void setTimeLine(){
-        timeLine = new Timeline(new KeyFrame(Duration.millis(100), ae->{
-            repository.currentPoint.set(repository.currentPoint.get()+1);
-            System.out.println(repository.currentPoint.get());
+    private void setTimeLine() {
+        timeLine = new Timeline(new KeyFrame(Duration.millis(100), ae -> {
+            repository.currentPoint.set(repository.currentPoint.get() + 1);
+            //System.out.println(repository.currentPoint.get());
         }));
-        timeLine.setCycleCount((int) (repository.dotsGroup.getChildren().size()-1-repository.currentPoint.get()));
+        timeLine.setCycleCount((int) (repository.dotsGroup.getChildren().size() - 1 - repository.currentPoint.get()));
     }
 
-    public void setStage(Stage stage){
+    public void setStage(Stage stage) {
         this.stage = stage;
     }
 }
