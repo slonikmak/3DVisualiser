@@ -1,7 +1,7 @@
 package controllers;
 
-import com.interactivemesh.jfx.importer.Importer;
-import com.interactivemesh.jfx.importer.stl.StlMeshImporter;
+//import com.interactivemesh.jfx.importer.Importer;
+//import com.interactivemesh.jfx.importer.stl.StlMeshImporter;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.property.DoubleProperty;
@@ -38,6 +38,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.function.Consumer;
 
 public class Controller implements Initializable {
     private Stage stage;
@@ -58,6 +59,8 @@ public class Controller implements Initializable {
     private DoubleProperty zoom = new SimpleDoubleProperty(1);
     private DoubleProperty cameraTranslateX = new SimpleDoubleProperty(-100);
     private DoubleProperty cameraTranslateY = new SimpleDoubleProperty(0);
+
+    private boolean isFirstTimePlay = true;
 
     private Timeline timeLine;
 
@@ -94,6 +97,13 @@ public class Controller implements Initializable {
     @FXML
     CheckBox dynamicPath;
 
+    @FXML
+    Slider speedSlider;
+
+    @FXML
+    Label speedLabel;
+
+
 
     @FXML
     void playTimer() {
@@ -121,11 +131,11 @@ public class Controller implements Initializable {
         FileChooser fileChooser = new FileChooser();
         File file = fileChooser.showOpenDialog(stage);
         System.out.println(file);
-        Importer importer = new StlMeshImporter();
-        importer.read(file);
-        TriangleMesh node = (TriangleMesh) importer.getImport();
-        MeshView meshView = new MeshView(node);
-        mainGroup.getChildren().add(meshView);
+        //Importer importer = new StlMeshImporter();
+        //importer.read(file);
+        //TriangleMesh node = (TriangleMesh) importer.getImport();
+        //MeshView meshView = new MeshView(node);
+        //mainGroup.getChildren().add(meshView);
 
     }
 
@@ -138,6 +148,18 @@ public class Controller implements Initializable {
 
         initGlider();
 
+        dynamicPath.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue){
+                for (int i = repository.currentPoint.intValue(); i < repository.dotsGroup.getChildren().size(); i++) {
+                    repository.dotsGroup.getChildren().get(i).setVisible(false);
+                }
+            } else {
+                for (int i = repository.currentPoint.intValue(); i < repository.dotsGroup.getChildren().size(); i++) {
+                    repository.dotsGroup.getChildren().get(i).setVisible(true);
+                }
+            }
+        });
+
 
         repository.proectionGroup.visibleProperty().bind(showProections.selectedProperty());
         repository.dotsGroup.visibleProperty().bind(showPath.selectedProperty());
@@ -145,6 +167,21 @@ public class Controller implements Initializable {
         showPath.setSelected(true);
 
         //setProection();
+
+
+        speedSlider.setMax(2);
+        speedLabel.textProperty().bindBidirectional(speedSlider.valueProperty(), new StringConverter<Number>() {
+            @Override
+            public String toString(Number object) {
+                return String.valueOf(object);
+            }
+
+            @Override
+            public Number fromString(String string) {
+                return null;
+            }
+        });
+        speedSlider.setValue(1);
 
         axisGroup = initAxis();
         mainGroup = new Group();
@@ -444,22 +481,25 @@ public class Controller implements Initializable {
         setTrackLength();
 
         repository.currentPoint.addListener((observable, oldValue, newValue) -> {
-            int diff = newValue.intValue() - oldValue.intValue();
-            int dir;
-            dir = (diff > 0) ? 1 :-1;
-            if (Math.abs(diff) > 1) {
-                System.out.println(diff);
-                for (int i = 0; i < Math.abs(diff); i++) {
-                    int val = oldValue.intValue() + dir + i*dir;
-                    Node point = repository.dotsGroup.getChildren().get(val);
+            if (dynamicPath.isSelected()){
+                int diff = newValue.intValue() - oldValue.intValue();
+                int dir;
+                dir = (diff > 0) ? 1 :-1;
+                if (Math.abs(diff) > 1) {
+                    System.out.println(diff);
+                    for (int i = 0; i < Math.abs(diff); i++) {
+                        int val = oldValue.intValue() + dir + i*dir;
+                        Node point = repository.dotsGroup.getChildren().get(val);
+                        if (point.isVisible()) point.setVisible(false);
+                        else point.setVisible(true);
+                    }
+                } else {
+                    Node point = repository.dotsGroup.getChildren().get(newValue.intValue());
                     if (point.isVisible()) point.setVisible(false);
                     else point.setVisible(true);
                 }
-            } else {
-                Node point = repository.dotsGroup.getChildren().get(newValue.intValue());
-                if (point.isVisible()) point.setVisible(false);
-                else point.setVisible(true);
             }
+
 
         });
 
@@ -506,6 +546,10 @@ public class Controller implements Initializable {
             //System.out.println(repository.currentPoint.get());
         }));
         timeLine.setCycleCount((int) (repository.dotsGroup.getChildren().size() - 1 - repository.currentPoint.get()));
+        timeLine.setOnFinished(event -> {
+            dynamicPath.setSelected(false);
+            dynamicPath.setDisable(true);
+        });
     }
 
     public void setStage(Stage stage) {
