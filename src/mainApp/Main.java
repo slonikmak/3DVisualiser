@@ -5,6 +5,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.SceneAntialiasing;
 import javafx.stage.Stage;
 
 public class Main extends Application {
@@ -18,7 +19,7 @@ public class Main extends Application {
         controller.setStage(primaryStage);
 
         primaryStage.setTitle("Hello World");
-        primaryStage.setScene(new Scene(root, 1200, 900));
+        primaryStage.setScene(new Scene(root, 1200, 900, true, SceneAntialiasing.BALANCED));
         primaryStage.show();
     }
 

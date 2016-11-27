@@ -6,8 +6,6 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -27,7 +25,6 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
-import model.MyPoint;
 import repository.Repository;
 import view.PathDot;
 import view.Point3D;
@@ -47,6 +44,7 @@ public class Controller implements Initializable {
     private Group plainGroup;
     private Group cellsGroup;
     private Group lightGroup;
+    private Group cameraGroup;
 
     private Sphere glider;
 
@@ -56,7 +54,7 @@ public class Controller implements Initializable {
     private DoubleProperty cameraRotationX = new SimpleDoubleProperty(0);
     private DoubleProperty cameraRotationY = new SimpleDoubleProperty(0);
     private DoubleProperty zoom = new SimpleDoubleProperty(1);
-    private DoubleProperty cameraTranslateX = new SimpleDoubleProperty(-100);
+    private DoubleProperty cameraTranslateX = new SimpleDoubleProperty(0);
     private DoubleProperty cameraTranslateY = new SimpleDoubleProperty(0);
 
     private Timeline timeLine;
@@ -94,6 +92,24 @@ public class Controller implements Initializable {
     @FXML
     CheckBox dynamicPath;
 
+    @FXML
+    Label xLabel;
+
+    @FXML
+    Label yLabel;
+
+    @FXML
+    Label zLabel;
+
+    @FXML
+    Label speedLabel;
+
+    @FXML
+    Slider speedSlider;
+
+
+
+
 
     @FXML
     void playTimer() {
@@ -101,6 +117,7 @@ public class Controller implements Initializable {
             repository.currentPoint.set(0);
         }
         setTimeLine();
+        timeLine.setRate(speedSlider.getValue());
         timeLine.play();
     }
 
@@ -144,13 +161,40 @@ public class Controller implements Initializable {
 
         showPath.setSelected(true);
 
+        dynamicPath.selectedProperty().addListener(c->{
+            if (dynamicPath.isSelected()){
+                for (int i = repository.currentPoint.intValue()+1; i < repository.dotsGroup.getChildren().size(); i++) {
+                    repository.dotsGroup.getChildren().get(i).setVisible(false);
+                }
+            } else {
+                for (int i = repository.currentPoint.intValue()+1; i < repository.dotsGroup.getChildren().size(); i++) {
+                    repository.dotsGroup.getChildren().get(i).setVisible(true);
+                }
+            }
+        });
+
         //setProection();
+
+        speedSlider.setMax(2);
+        speedSlider.setValue(1);
+        speedLabel.textProperty().bindBidirectional(speedSlider.valueProperty(), new StringConverter<Number>() {
+            @Override
+            public String toString(Number object) {
+                return String.valueOf( Math.rint(100.0 * object.doubleValue()) / 100.0);
+            }
+
+            @Override
+            public Number fromString(String string) {
+                return null;
+            }
+        });
 
         axisGroup = initAxis();
         mainGroup = new Group();
         plainGroup = initPlane();
         cellsGroup = initCells();
         lightGroup = new Group();
+        cameraGroup = new Group();
 
 
         Rotate rotateX = new Rotate(0, Rotate.X_AXIS);
@@ -168,6 +212,7 @@ public class Controller implements Initializable {
         scale.zProperty().bind(zoom);
 
         camera = new PerspectiveCamera(false);// создание камеры
+        cameraGroup.getChildren().add(camera);
         camera.translateXProperty().bind(cameraTranslateX);
         camera.translateYProperty().bind(cameraTranslateY);
         //camera.setTranslateX(-100);
@@ -178,21 +223,30 @@ public class Controller implements Initializable {
         /*cameraRotateX.angleProperty().bind(cameraRotationX);
         cameraRotateY.angleProperty().bind(cameraRotationY);
         camera.getTransforms().addAll(cameraRotateX, cameraRotateY);*/
+        repository.currentPoint.addListener(c->{
+            cameraGroup.setTranslateX(((PathDot)repository.dotsGroup.getChildren().get(repository.currentPoint.intValue())).getPoint().x-100);
+
+            xLabel.setText(String.valueOf(((PathDot)repository.dotsGroup.getChildren().get(repository.currentPoint.intValue())).getPoint().x));
+            yLabel.setText(String.valueOf(((PathDot)repository.dotsGroup.getChildren().get(repository.currentPoint.intValue())).getPoint().y));
+            zLabel.setText(String.valueOf(((PathDot)repository.dotsGroup.getChildren().get(repository.currentPoint.intValue())).getPoint().z));
+        });
+
 
         PointLight light = new PointLight();
         light.setLayoutX(200);
         light.setLayoutY(200);
         lightGroup.getChildren().add(light);
 
-        mainGroup.getTransforms().addAll(rotateX, rotateY, rotateZ, scale);
+        cameraGroup.getTransforms().addAll(rotateX, rotateY, rotateZ, scale);
 
 
-        mainGroup.getChildren().addAll(lightGroup, glider, repository.proectionGroup, repository.dotsGroup, axisGroup, plainGroup, cellsGroup);
+        mainGroup.getChildren().addAll(cameraGroup, lightGroup, glider, repository.proectionGroup, repository.dotsGroup, axisGroup, plainGroup, cellsGroup);
 
-        SubScene subScene = new SubScene(mainGroup, 750, 600, true, SceneAntialiasing.BALANCED);
+                SubScene subScene = new SubScene(mainGroup, 750, 600, true, SceneAntialiasing.BALANCED);
         subScene.setCamera(camera);
 
         handleMouse(subScene);
+
 
         subScene.widthProperty().bind(subPane.widthProperty());
         subScene.heightProperty().bind(subPane.heightProperty());
@@ -384,8 +438,8 @@ public class Controller implements Initializable {
                     modifier = SHIFT_MULTIPLIER;
                 }
                 if (me.isPrimaryButtonDown()) {
-                    cameraRotationX.setValue(cameraRotationX.getValue() - mouseDeltaX * ROTATION_SPEED);
-                    cameraRotationY.setValue(cameraRotationY.getValue() + mouseDeltaY * ROTATION_SPEED);
+                    cameraRotationX.setValue(cameraRotationX.getValue() + mouseDeltaX * ROTATION_SPEED);
+                    cameraRotationY.setValue(cameraRotationY.getValue() - mouseDeltaY * ROTATION_SPEED);
                 /*cameraXform.ry.setAngle(cameraXform.ry.getAngle() -
                         mouseDeltaX*modifierFactor*modifier*ROTATION_SPEED);  //
                 cameraXform.rx.setAngle(cameraXform.rx.getAngle() +
@@ -425,8 +479,8 @@ public class Controller implements Initializable {
     private void initPoints() {
 
         for (int i = 0; i < 100; i++) {
-            if (10 * i > repository.getxAxisScale() * repository.getAxisSize())
-                repository.setxAxisScale(repository.getxAxisScale() + 0.5f);
+            /*if (10 * i > repository.getxAxisScale() * repository.getAxisSize())
+                repository.setxAxisScale(repository.getxAxisScale() + 0.5f);*/
 
             PathDot dot = new PathDot(new view.Point3D(10 * i, (float) (100 * Math.sin(i * (2 * Math.PI / 100)) * 2) + 500, -3 * i), true, 5);
             if (dynamicPath.isSelected()) dot.setVisible(false);
@@ -438,28 +492,31 @@ public class Controller implements Initializable {
 
         });
 
-        Group projectionGroup = setProection();
+        //Group projectionGroup = setProection();
 
-        repository.proectionGroup.getChildren().addAll(projectionGroup);
+        repository.proectionGroup = setProection();
         setTrackLength();
 
         repository.currentPoint.addListener((observable, oldValue, newValue) -> {
-            int diff = newValue.intValue() - oldValue.intValue();
-            int dir;
-            dir = (diff > 0) ? 1 :-1;
-            if (Math.abs(diff) > 1) {
-                System.out.println(diff);
-                for (int i = 0; i < Math.abs(diff); i++) {
-                    int val = oldValue.intValue() + dir + i*dir;
-                    Node point = repository.dotsGroup.getChildren().get(val);
+            if (dynamicPath.isSelected()){
+                int diff = newValue.intValue() - oldValue.intValue();
+                int dir;
+                dir = (diff > 0) ? 1 :-1;
+                if (Math.abs(diff) > 1) {
+                    System.out.println(diff);
+                    for (int i = 0; i < Math.abs(diff); i++) {
+                        int val = oldValue.intValue() + dir + i*dir;
+                        Node point = repository.dotsGroup.getChildren().get(val);
+                        if (point.isVisible()) point.setVisible(false);
+                        else point.setVisible(true);
+                    }
+                } else {
+                    Node point = repository.dotsGroup.getChildren().get(newValue.intValue());
                     if (point.isVisible()) point.setVisible(false);
                     else point.setVisible(true);
                 }
-            } else {
-                Node point = repository.dotsGroup.getChildren().get(newValue.intValue());
-                if (point.isVisible()) point.setVisible(false);
-                else point.setVisible(true);
             }
+
 
         });
 
@@ -503,9 +560,19 @@ public class Controller implements Initializable {
     private void setTimeLine() {
         timeLine = new Timeline(new KeyFrame(Duration.millis(100), ae -> {
             repository.currentPoint.set(repository.currentPoint.get() + 1);
+            if (((PathDot)repository.dotsGroup.getChildren().get(repository.currentPoint.intValue())).getPoint().x>repository.getxAxisScale() * repository.getAxisSize()) {
+                repository.setxAxisScale(repository.getxAxisScale() + 0.5f);
+                cellsGroup.getChildren().clear();
+                cellsGroup.getChildren().add(initCells());
+            }
+
             //System.out.println(repository.currentPoint.get());
         }));
         timeLine.setCycleCount((int) (repository.dotsGroup.getChildren().size() - 1 - repository.currentPoint.get()));
+
+        speedSlider.valueProperty().addListener(c->{
+            timeLine.setRate(speedSlider.getValue());
+        });
     }
 
     public void setStage(Stage stage) {
