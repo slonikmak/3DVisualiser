@@ -6,6 +6,8 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -223,13 +225,8 @@ public class Controller implements Initializable {
         /*cameraRotateX.angleProperty().bind(cameraRotationX);
         cameraRotateY.angleProperty().bind(cameraRotationY);
         camera.getTransforms().addAll(cameraRotateX, cameraRotateY);*/
-        repository.currentPoint.addListener(c->{
-            cameraGroup.setTranslateX(((PathDot)repository.dotsGroup.getChildren().get(repository.currentPoint.intValue())).getPoint().x-100);
 
-            xLabel.setText(String.valueOf(((PathDot)repository.dotsGroup.getChildren().get(repository.currentPoint.intValue())).getPoint().x));
-            yLabel.setText(String.valueOf(((PathDot)repository.dotsGroup.getChildren().get(repository.currentPoint.intValue())).getPoint().y));
-            zLabel.setText(String.valueOf(((PathDot)repository.dotsGroup.getChildren().get(repository.currentPoint.intValue())).getPoint().z));
-        });
+        repository.currentPoint.addListener(this::currentPointChangeListener);
 
 
         PointLight light = new PointLight();
@@ -254,6 +251,14 @@ public class Controller implements Initializable {
 
         subPane.getChildren().add(subScene);
 
+    }
+
+    private void currentPointChangeListener(ObservableValue<? extends Number> observable, Number oldValue, Number newValue){
+        cameraGroup.setTranslateX(((PathDot)repository.dotsGroup.getChildren().get(repository.currentPoint.intValue())).getPoint().x);
+
+        xLabel.setText(String.valueOf(((PathDot)repository.dotsGroup.getChildren().get(repository.currentPoint.intValue())).getPoint().x));
+        yLabel.setText(String.valueOf(((PathDot)repository.dotsGroup.getChildren().get(repository.currentPoint.intValue())).getPoint().y));
+        zLabel.setText(String.valueOf(((PathDot)repository.dotsGroup.getChildren().get(repository.currentPoint.intValue())).getPoint().z));
     }
 
     private void initGlider() {
