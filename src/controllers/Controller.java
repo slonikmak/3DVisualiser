@@ -1,7 +1,7 @@
 package controllers;
 
-import com.interactivemesh.jfx.importer.Importer;
-import com.interactivemesh.jfx.importer.stl.StlMeshImporter;
+//import com.interactivemesh.jfx.importer.Importer;
+//import com.interactivemesh.jfx.importer.stl.StlMeshImporter;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.property.DoubleProperty;
@@ -137,14 +137,14 @@ public class Controller implements Initializable {
 
     @FXML
     void loadModel() {
-        FileChooser fileChooser = new FileChooser();
+       /* FileChooser fileChooser = new FileChooser();
         File file = fileChooser.showOpenDialog(stage);
         System.out.println(file);
         Importer importer = new StlMeshImporter();
         importer.read(file);
         TriangleMesh node = (TriangleMesh) importer.getImport();
         MeshView meshView = new MeshView(node);
-        mainGroup.getChildren().add(meshView);
+        mainGroup.getChildren().add(meshView);*/
 
     }
 
