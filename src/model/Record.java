@@ -4,7 +4,6 @@ package model;
  * Created by Oceanos on 02.12.2016.
  */
 public class Record {
-    private long id;
     private double pitch;
     private double roll;
     private double course;
@@ -13,21 +12,13 @@ public class Record {
     public Record() {
     }
 
-    public Record(long id, double pitch, double roll, double course, double depth) {
-        this.id = id;
+    public Record(double pitch, double roll, double course, double depth) {
         this.pitch = pitch;
         this.roll = roll;
         this.course = course;
         this.depth = depth;
     }
 
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
 
     public double getPitch() {
         return pitch;

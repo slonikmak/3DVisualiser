@@ -18,7 +18,7 @@ public class Repository {
 
     private static Repository instance = new Repository();
     //масштаб 1 пиксель на сантиметр
-    private final float SCALE = 1;
+    private final float SCALE = 10;
     private final int axisSize = 500;
     private FloatProperty xAxisScale = new SimpleFloatProperty(1.5f);
     private FloatProperty yAxisScale = new SimpleFloatProperty(1.7f);

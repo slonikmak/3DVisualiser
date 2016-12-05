@@ -1,21 +1,29 @@
 package utills;
 
-import java.io.*;
+
+import model.MyPoint;
+import model.Record;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Oceanos on 09.11.2016.
  */
 public class Utills {
 
-    public static Object cloneObj(Object object) throws IOException, ClassNotFoundException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ObjectOutputStream ous = new ObjectOutputStream( baos);
-        ous.writeObject(object);
-        ous.close();
+   public static  List<MyPoint> createPoints(List<Record> records){
+       List<MyPoint> points = new ArrayList<>();
+       points.add(new MyPoint(0,0,0));
+       for (int i = 10; i < records.size(); i = i+10) {
+           MyPoint point = new MyPoint();
+           Record record = records.get(i);
+           point.setY(record.getDepth());
+           point.setX(point.getY()*(1/Math.tan(Math.toRadians(record.getPitch())))+points.get(points.size()-1).getX());
+           point.setZ(0);
+           points.add(point);
+       }
 
-        ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-        ObjectInputStream ois = new ObjectInputStream(bais);
-        Object cloned = ois.readObject();
-        return cloned;
-    }
+       return points;
+   }
 }

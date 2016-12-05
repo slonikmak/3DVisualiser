@@ -2,6 +2,7 @@ package controllers;
 
 //import com.interactivemesh.jfx.importer.Importer;
 //import com.interactivemesh.jfx.importer.stl.StlMeshImporter;
+import connection.Conn;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.property.DoubleProperty;
@@ -27,13 +28,17 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
+import model.MyPoint;
+import model.Record;
 import repository.Repository;
+import utills.Utills;
 import view.PathDot;
 import view.Point3D;
 import view.PolyLine3D;
 
 import java.io.File;
 import java.net.URL;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -482,12 +487,26 @@ public class Controller implements Initializable {
     } //handleMouse
 
     private void initPoints() {
+        List<MyPoint> points = new ArrayList<>();
+        try {
+            Conn.connect();
+            List<Record> records = Conn.getRecords(3);
+            points = Utills.createPoints(records);
 
-        for (int i = 0; i < 100; i++) {
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        for (int i = 0; i < points.size(); i++) {
             /*if (10 * i > repository.getxAxisScale() * repository.getAxisSize())
                 repository.setxAxisScale(repository.getxAxisScale() + 0.5f);*/
 
-            PathDot dot = new PathDot(new view.Point3D(10 * i, (float) (100 * Math.sin(i * (2 * Math.PI / 100)) * 2) + 500, -3 * i), true, 5);
+
+            //PathDot dot = new PathDot(new view.Point3D(10 * i, (float) (100 * Math.sin(i * (2 * Math.PI / 100)) * 2) + 500, -3 * i), true, 5);
+            MyPoint point = points.get(i);
+            PathDot dot = new PathDot(new view.Point3D((float) point.getX(), (float) point.getY()*repository.getSCALE()*10,(float)  point.getZ()*repository.getSCALE()), true, 5);
             if (dynamicPath.isSelected()) dot.setVisible(false);
 
             repository.dotsGroup.getChildren().add(dot);
@@ -524,6 +543,8 @@ public class Controller implements Initializable {
 
 
         });
+
+
 
 
     }

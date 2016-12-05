@@ -7,6 +7,9 @@ public class MyPoint {
     double x;
     double y;
     double z;
+    double pitch;
+    double roll;
+
 
     public MyPoint() {
     }
@@ -39,5 +42,21 @@ public class MyPoint {
 
     public void setZ(double z) {
         this.z = z;
+    }
+
+    public double getPitch() {
+        return pitch;
+    }
+
+    public void setPitch(double pitch) {
+        this.pitch = pitch;
+    }
+
+    public double getRoll() {
+        return roll;
+    }
+
+    public void setRoll(double roll) {
+        this.roll = roll;
     }
 }

@@ -25,22 +25,13 @@ public class Conn {
     {
         conn = null;
         Class.forName("org.sqlite.JDBC");
-        conn = DriverManager.getConnection("jdbc:sqlite:C:/Users/Oceanos/IdeaProjects/3DVisualiser/src/connection\\log_27_october.s3db");
+        conn = DriverManager.getConnection("jdbc:sqlite:C:/Users/Anton/IdeaProjects/3DVisualiser/src/connection\\log_27_october.s3db");
         statmt = conn.createStatement();
         System.out.println("База Подключена!");
     }
 
 
 
-    // --------Заполнение таблицы--------
-    public static void WriteDB() throws SQLException
-    {
-        statmt.execute("INSERT INTO 'users' ('name', 'phone') VALUES ('Petya', 125453); ");
-        statmt.execute("INSERT INTO 'users' ('name', 'phone') VALUES ('Vasya', 321789); ");
-        statmt.execute("INSERT INTO 'users' ('name', 'phone') VALUES ('Masha', 456123); ");
-
-        System.out.println("Таблица заполнена");
-    }
 
     // -------- Вывод таблицы--------
     public static void ReadDB() throws ClassNotFoundException, SQLException
@@ -70,12 +61,25 @@ public class Conn {
         return sessions;
     }
 
-    public static List getRecords(long id) throws SQLException {
+    public static List<Record> getRecords(long id) throws SQLException {
         List<Record> records = new ArrayList<>();
         resSet = statmt.executeQuery("select * from record WHERE session_id="+id);
 
         while (resSet.next()){
+            String motionString = resSet.getString("value");
+            for (int i = 0; i < 5; i++) {
+                resSet.next();
+            }
+            String depthString = resSet.getString("value");
 
+            for (int i = 0; i < 4; i++) {
+                resSet.next();
+            }
+
+            String[] motionArr = motionString.split("__,__");
+            String[] depthArr = depthString.split("__,__");
+            Record record = new Record(Double.parseDouble(motionArr[0]), Double.parseDouble(motionArr[1]), Double.parseDouble(motionArr[2]), Double.parseDouble(depthArr[0]));
+            records.add(record);
         }
 
         return records;
@@ -95,6 +99,8 @@ public class Conn {
         try {
             connect();
             System.out.println(getSessions());
+            getRecords(3);
+
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } catch (SQLException e) {
