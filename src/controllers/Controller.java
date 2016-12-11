@@ -2,6 +2,7 @@ package controllers;
 
 //import com.interactivemesh.jfx.importer.Importer;
 //import com.interactivemesh.jfx.importer.stl.StlMeshImporter;
+import com.interactivemesh.jfx.importer.obj.ObjModelImporter;
 import connection.Conn;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -40,6 +41,7 @@ import java.io.File;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -53,7 +55,7 @@ public class Controller implements Initializable {
     private Group lightGroup;
     private Group cameraGroup;
 
-    private Sphere glider;
+    private Group glider;
 
     private Repository repository = Repository.getInstance();
     private PerspectiveCamera camera;
@@ -63,6 +65,8 @@ public class Controller implements Initializable {
     private DoubleProperty zoom = new SimpleDoubleProperty(1);
     private DoubleProperty cameraTranslateX = new SimpleDoubleProperty(0);
     private DoubleProperty cameraTranslateY = new SimpleDoubleProperty(0);
+
+    private List<MyPoint> points;
 
     private Timeline timeLine;
 
@@ -142,14 +146,32 @@ public class Controller implements Initializable {
 
     @FXML
     void loadModel() {
-       /* FileChooser fileChooser = new FileChooser();
+        FileChooser fileChooser = new FileChooser();
         File file = fileChooser.showOpenDialog(stage);
         System.out.println(file);
-        Importer importer = new StlMeshImporter();
+        ObjModelImporter importer = new ObjModelImporter();
         importer.read(file);
-        TriangleMesh node = (TriangleMesh) importer.getImport();
-        MeshView meshView = new MeshView(node);
-        mainGroup.getChildren().add(meshView);*/
+        MeshView[] meshViews = importer.getImport();
+        PhongMaterial bodyMaterial = new PhongMaterial(Color.web("rgba(0, 0, 153, 0.2)"));
+        meshViews[0].setMaterial(bodyMaterial);
+
+        PhongMaterial blueMaterial = new PhongMaterial(Color.web("rgb(0, 0, 153)"));
+        meshViews[1].setMaterial(blueMaterial);
+        meshViews[2].setMaterial(blueMaterial);
+
+        PhongMaterial blackMaterial = new PhongMaterial(Color.BLACK);
+        meshViews[3].setMaterial(blackMaterial);
+        meshViews[4].setMaterial(blackMaterial);
+        meshViews[5].setMaterial(blackMaterial);
+        meshViews[6].setMaterial(blackMaterial);
+
+
+        glider.getChildren().clear();
+        glider.getChildren().addAll(Arrays.asList(meshViews));
+        //mainGroup.getChildren().addAll();
+        //TriangleMesh node = (TriangleMesh) importer.getImport();
+        //MeshView meshView = new MeshView(node);
+        //mainGroup.getChildren().add(meshView);
 
     }
 
@@ -242,7 +264,7 @@ public class Controller implements Initializable {
         cameraGroup.getTransforms().addAll(rotateX, rotateY, rotateZ, scale);
 
 
-        mainGroup.getChildren().addAll(cameraGroup, lightGroup, glider, repository.proectionGroup, repository.dotsGroup, axisGroup, plainGroup, cellsGroup);
+        mainGroup.getChildren().addAll(glider, cameraGroup, lightGroup, repository.proectionGroup, repository.dotsGroup, axisGroup, plainGroup, cellsGroup);
 
                 SubScene subScene = new SubScene(mainGroup, 750, 600, true, SceneAntialiasing.BALANCED);
         subScene.setCamera(camera);
@@ -267,10 +289,12 @@ public class Controller implements Initializable {
     }
 
     private void initGlider() {
-        glider = new Sphere(30);
+        glider = new Group();
+        glider.getChildren().add(new Sphere(30));
         setGliderPosition(((PathDot) repository.dotsGroup.getChildren().get(0)).getPoint());
         repository.currentPoint.addListener((observable, oldValue, newValue) -> {
             Point3D point = ((PathDot) repository.dotsGroup.getChildren().get(repository.currentPoint.intValue())).getPoint();
+            glider.setRotate(-points.get(repository.currentPoint.intValue()).getPitch());
             setGliderPosition(point);
         });
 
@@ -487,7 +511,7 @@ public class Controller implements Initializable {
     } //handleMouse
 
     private void initPoints() {
-        List<MyPoint> points = new ArrayList<>();
+        points = new ArrayList<>();
         try {
             Conn.connect();
             List<Record> records = Conn.getRecords(3);
@@ -506,7 +530,7 @@ public class Controller implements Initializable {
 
             //PathDot dot = new PathDot(new view.Point3D(10 * i, (float) (100 * Math.sin(i * (2 * Math.PI / 100)) * 2) + 500, -3 * i), true, 5);
             MyPoint point = points.get(i);
-            PathDot dot = new PathDot(new view.Point3D((float) point.getX(), (float) point.getY()*repository.getSCALE()*10,(float)  point.getZ()*repository.getSCALE()), true, 5);
+            PathDot dot = new PathDot(new view.Point3D((float) point.getX()*repository.getSCALE()*2, (float) point.getY()*repository.getSCALE()*10,(float)  point.getZ()*repository.getSCALE()), true, 5);
             if (dynamicPath.isSelected()) dot.setVisible(false);
 
             repository.dotsGroup.getChildren().add(dot);

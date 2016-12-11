@@ -19,8 +19,9 @@ public class Utills {
            MyPoint point = new MyPoint();
            Record record = records.get(i);
            point.setY(record.getDepth());
-           point.setX(point.getY()*(1/Math.tan(Math.toRadians(record.getPitch())))+points.get(points.size()-1).getX());
+           point.setX(Math.abs(Math.abs((point.getY()-points.get(points.size()-1).getY()))*(1/Math.tan(Math.toRadians(record.getPitch()))))+points.get(points.size()-1).getX());
            point.setZ(0);
+           point.setPitch(record.getPitch());
            points.add(point);
        }
 
