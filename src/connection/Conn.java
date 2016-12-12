@@ -25,7 +25,7 @@ public class Conn {
     {
         conn = null;
         Class.forName("org.sqlite.JDBC");
-        conn = DriverManager.getConnection("jdbc:sqlite:C:/Users/Anton/IdeaProjects/3DVisualiser/src/connection\\log_27_october.s3db");
+        conn = DriverManager.getConnection("jdbc:sqlite:src/connection/log_27_october.s3db");
         statmt = conn.createStatement();
         System.out.println("База Подключена!");
     }

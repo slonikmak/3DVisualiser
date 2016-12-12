@@ -530,7 +530,7 @@ public class Controller implements Initializable {
 
             //PathDot dot = new PathDot(new view.Point3D(10 * i, (float) (100 * Math.sin(i * (2 * Math.PI / 100)) * 2) + 500, -3 * i), true, 5);
             MyPoint point = points.get(i);
-            PathDot dot = new PathDot(new view.Point3D((float) point.getX()*repository.getSCALE()*2, (float) point.getY()*repository.getSCALE()*10,(float)  point.getZ()*repository.getSCALE()), true, 5);
+            PathDot dot = new PathDot(new view.Point3D((float) point.getX()*repository.getSCALE()*10, (float) point.getY()*repository.getSCALE()*10,(float)  point.getZ()*repository.getSCALE()*2), true, 5);
             if (dynamicPath.isSelected()) dot.setVisible(false);
 
             repository.dotsGroup.getChildren().add(dot);
