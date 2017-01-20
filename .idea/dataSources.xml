@@ -7,5 +7,11 @@
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/src/connection\log_27_october.s3db</jdbc-url>
     </data-source>
+    <data-source source="LOCAL" name="Sqlite (Xerial) - log_27_october.s3db" uuid="51ab42ad-656f-4318-8b39-dcc76597e97a">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/src/connection\log_27_october.s3db</jdbc-url>
+    </data-source>
   </component>
 </project>
